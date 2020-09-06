@@ -3,10 +3,10 @@ var controllerOptions = {};
 var x = window.innerWidth/2;
 var y = window.innerHeight/2;
 
-var rawXMin = 0;
-var rawXMax = 1;
-var rawYMin = 0;
-var rawYMax = 1;
+var rawXMin = -100;
+var rawXMax = 100;
+var rawYMin = 50;
+var rawYMax = 300;
 
 function UpdateBounds(x,y,z) {
     if (x < rawXMin) {
@@ -16,18 +16,21 @@ function UpdateBounds(x,y,z) {
     }
     if (y < rawYMin) {
         rawYMin = y;
-    } else if (y > rawXMax) {
+    } else if (y > rawYMax) {
         rawYMax = y;
     }
 }
 function HandleFinger(finger) {
-    // console.log(finger);
-    // console.log(finger.tipPosition);
     var x, y, z;
     [x, y, z] = finger.tipPosition;
     UpdateBounds(x, y, z);
 
-    circle(x, window.innerHeight/2 - y, 50);
+    var scaledX  = ((x - rawXMin) / (rawXMax - rawXMin) ) * window.innerWidth;
+    var scaledY  = ((y - rawYMin) / (rawYMax - rawYMin) ) * window.innerHeight;
+    // console.log(x, rawXMin, rawXMax, scaledX);
+    // console.log(y, rawYMin, rawYMax, scaledY);
+
+    circle(scaledX, window.innerHeight - scaledY, 50);
 
 }
 

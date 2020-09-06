@@ -5,18 +5,16 @@ var y = window.innerHeight/2;
 
 function HandleFinger(finger) {
     // console.log(finger);
-    console.log(finger.tipPosition);
+    // console.log(finger.tipPosition);
+    var x, y, z;
+    [x, y, z] = finger.tipPosition;
+
+    circle(x, y, 50);
+
 }
 
 function HandleHand(hand) {
     HandleFinger(hand.indexFinger);
-    // var fingers = hand.fingers;
-    //
-    // for (var i = 0; i < fingers.length; i++) {
-    //     if (fingers[i].type == 1) {
-    //         HandleFinger(fingers[i]);
-    //     }
-    // }
 }
 
 function HandleFrame(frame) {
@@ -24,12 +22,9 @@ function HandleFrame(frame) {
         var hand = frame.hands[0];
         HandleHand(hand);
     }
-    // clear();
-    // x += Math.floor(Math.random() * 3) - 1;
-    // y += Math.floor(Math.random() * 3) - 1;
-    //
-    // circle(x, y, 50);
-
 }
 
-Leap.loop(controllerOptions, HandleFrame);
+Leap.loop(controllerOptions, function(frame){
+    clear();
+    HandleFrame(frame);
+});

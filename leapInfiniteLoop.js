@@ -4,17 +4,19 @@ var x = window.innerWidth/2;
 var y = window.innerHeight/2;
 
 function HandleFinger(finger) {
-    console.log(finger);
+    // console.log(finger);
     console.log(finger.tipPosition);
 }
 
 function HandleHand(hand) {
-    var fingers = hand.fingers;
-    for (var i = 0; i < fingers.length; i++) {
-        if (fingers[i].type == 1) {
-            HandleFinger(fingers[i]);
-        }
-    }
+    HandleFinger(hand.indexFinger);
+    // var fingers = hand.fingers;
+    //
+    // for (var i = 0; i < fingers.length; i++) {
+    //     if (fingers[i].type == 1) {
+    //         HandleFinger(fingers[i]);
+    //     }
+    // }
 }
 
 function HandleFrame(frame) {

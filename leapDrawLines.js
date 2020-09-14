@@ -20,17 +20,36 @@ function UpdateBounds(x,y,z) {
         rawYMax = y;
     }
 }
+
+function DrawCircle(x, y, r) {
+    var scaledX  = ((x - rawXMin) / (rawXMax - rawXMin) ) * window.innerWidth;
+    var scaledY  = ((y - rawYMin) / (rawYMax - rawYMin) ) * window.innerHeight;
+    circle(scaledX, window.innerHeight - scaledY, r);
+}
+
+function HandleBone(bone) {
+    var tip = bone.nextJoint;
+    [x,y,z] = tip;
+
+    DrawCircle(x,y, 50);
+
+//    console.log(tip)
+}
+
 function HandleFinger(finger) {
     var x, y, z;
     [x, y, z] = finger.tipPosition;
     UpdateBounds(x, y, z);
 
-    var scaledX  = ((x - rawXMin) / (rawXMax - rawXMin) ) * window.innerWidth;
-    var scaledY  = ((y - rawYMin) / (rawYMax - rawYMin) ) * window.innerHeight;
+    var bones = finger.bones
+    for (var i = 0; i < bones.length; i++) {
+        HandleBone(bones[i]);
+    }
+
+
     // console.log(x, rawXMin, rawXMax, scaledX);
     // console.log(y, rawYMin, rawYMax, scaledY);
 
-    circle(scaledX, window.innerHeight - scaledY, 50);
 
 }
 

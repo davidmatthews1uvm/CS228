@@ -47,7 +47,7 @@ function HandleBone(bone) {
     [x1, y1, z1] = bone.prevJoint;
     [x2, y2, z2] = bone.nextJoint;
 
-    DrawLine(x1, y1, x2, y2, 4 - bone.type,  (4-bone.type)*40);
+    DrawLine(x1, y1, x2, y2, 2*(4 - bone.type),  (4-bone.type)*40);
 //    DrawCircle(x,y, 50);
 
 }
@@ -71,9 +71,12 @@ function HandleFinger(finger) {
 
 function HandleHand(hand) {
     var fingers = hand.fingers;
-    for (var i = 0; i < fingers.length; i++) {
-         HandleFinger(fingers[i]);
+    for (var bone_idx = 3; bone_idx >=0; bone_idx -= 1) {
+        for (var finger_idx = 0; finger_idx < fingers.length; finger_idx++) {
+             HandleBone(fingers[finger_idx].bones[bone_idx]);
+        }
     }
+
 }
 
 function HandleFrame(frame) {

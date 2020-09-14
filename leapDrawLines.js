@@ -27,13 +27,24 @@ function DrawCircle(x, y, r) {
     circle(scaledX, window.innerHeight - scaledY, r);
 }
 
+function DrawLine(x1, y1, x2, y2) {
+    var scaledX1  = ((x1 - rawXMin) / (rawXMax - rawXMin) ) * window.innerWidth;
+    var scaledY1  = window.innerHeight - ((y1 - rawYMin) / (rawYMax - rawYMin) ) * window.innerHeight;
+    var scaledX2  = ((x2 - rawXMin) / (rawXMax - rawXMin) ) * window.innerWidth;
+    var scaledY2  = window.innerHeight -((y2 - rawYMin) / (rawYMax - rawYMin) ) * window.innerHeight;
+
+    line(scaledX1,  scaledY1, scaledX2, scaledY2);
+//    circle(scaledX, window.innerHeight - scaledY, r);
+}
+
+
 function HandleBone(bone) {
-    var tip = bone.nextJoint;
-    [x,y,z] = tip;
+    [x1, y1, z1] = bone.prevJoint;
+    [x2, y2, z2] = bone.nextJoint;
 
-    DrawCircle(x,y, 50);
+    DrawLine(x1, y1, x2, y2);
+//    DrawCircle(x,y, 50);
 
-//    console.log(tip)
 }
 
 function HandleFinger(finger) {

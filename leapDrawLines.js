@@ -8,7 +8,7 @@ var rawXMax = 100;
 var rawYMin = 50;
 var rawYMax = 300;
 
-function UpdateBounds(x,y,z) {
+function UpdateBounds(x, y, z) {
     if (x < rawXMin) {
         rawXMin = x;
     } else if (x > rawXMax) {
@@ -21,19 +21,24 @@ function UpdateBounds(x,y,z) {
     }
 }
 
-function DrawCircle(x, y, r) {
+function TransformedCoordinates(x, y) {
+    UpdateBounds(x, y);
     var scaledX  = ((x - rawXMin) / (rawXMax - rawXMin) ) * window.innerWidth;
-    var scaledY  = ((y - rawYMin) / (rawYMax - rawYMin) ) * window.innerHeight;
-    circle(scaledX, window.innerHeight - scaledY, r);
+    var scaledY  = window.innerHeight - ((y - rawYMin) / (rawYMax - rawYMin) ) * window.innerHeight;
+    return [scaledX, scaledY];
 }
 
-function DrawLine(x1, y1, x2, y2) {
-    var scaledX1  = ((x1 - rawXMin) / (rawXMax - rawXMin) ) * window.innerWidth;
-    var scaledY1  = window.innerHeight - ((y1 - rawYMin) / (rawYMax - rawYMin) ) * window.innerHeight;
-    var scaledX2  = ((x2 - rawXMin) / (rawXMax - rawXMin) ) * window.innerWidth;
-    var scaledY2  = window.innerHeight -((y2 - rawYMin) / (rawYMax - rawYMin) ) * window.innerHeight;
+function DrawCircle(x, y, r) {
+    [x, y] = TransformedCoordinates(x, y);
+    circle(x, y, r);
+}
 
-    line(scaledX1,  scaledY1, scaledX2, scaledY2);
+function DrawLine(x1, y1, x2, y2, weight, color) {
+    [x1, y1] = TransformedCoordinates(x1, y1);
+    [x2, y2] = TransformedCoordinates(x2, y2);
+    strokeWeight(weight);
+    stroke(color);
+    line(x1, y1, x2, y2);
 //    circle(scaledX, window.innerHeight - scaledY, r);
 }
 
@@ -42,15 +47,15 @@ function HandleBone(bone) {
     [x1, y1, z1] = bone.prevJoint;
     [x2, y2, z2] = bone.nextJoint;
 
-    DrawLine(x1, y1, x2, y2);
+    DrawLine(x1, y1, x2, y2, 4 - bone.type,  (4-bone.type)*40);
 //    DrawCircle(x,y, 50);
 
 }
 
 function HandleFinger(finger) {
-    var x, y, z;
-    [x, y, z] = finger.tipPosition;
-    UpdateBounds(x, y, z);
+//    var x, y, z;
+//    [x, y, z] = finger.tipPosition;
+//    UpdateBounds(x, y, z);
 
     var bones = finger.bones
     for (var i = 0; i < bones.length; i++) {

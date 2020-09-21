@@ -8,6 +8,11 @@ var rawXMax = 100;
 var rawYMin = 50;
 var rawYMax = 300;
 
+var previousNumHands = 0;
+var currentNumHands = 0;
+var oneFrameOfData = nj.zeros([5,4,6]);
+
+
 function UpdateBounds(x, y, z) {
     if (x < rawXMin) {
         rawXMin = x;
@@ -39,51 +44,66 @@ function DrawLine(x1, y1, x2, y2, weight, color) {
     strokeWeight(weight);
     stroke(color);
     line(x1, y1, x2, y2);
-//    circle(scaledX, window.innerHeight - scaledY, r);
 }
 
 
-function HandleBone(bone) {
+function HandleBone(bone, finger_idx) {
     [x1, y1, z1] = bone.prevJoint;
     [x2, y2, z2] = bone.nextJoint;
 
-    DrawLine(x1, y1, x2, y2, 2*(4 - bone.type),  (4-bone.type)*40);
-//    DrawCircle(x,y, 50);
+    oneFrameOfData.set(finger_idx, bone.type, 0, x1);
+    oneFrameOfData.set(finger_idx, bone.type, 1, y1);
+    oneFrameOfData.set(finger_idx, bone.type, 2, z1);
+    oneFrameOfData.set(finger_idx, bone.type, 3, x2);
+    oneFrameOfData.set(finger_idx, bone.type, 4, y2);
+    oneFrameOfData.set(finger_idx, bone.type, 5, z2);
+
+    color = [0,0,0]
+    if (currentNumHands == 1) {
+        color = [0, (4-bone.type)*40, 0];
+    } else if (currentNumHands == 2) {
+        color = [(4-bone.type)*40, 0, 0];
+    }
+
+    DrawLine(x1, y1, x2, y2, 2*(4 - bone.type),  color);
+
 
 }
 
 function HandleFinger(finger) {
-//    var x, y, z;
-//    [x, y, z] = finger.tipPosition;
-//    UpdateBounds(x, y, z);
-
     var bones = finger.bones
     for (var i = 0; i < bones.length; i++) {
-        HandleBone(bones[i]);
+        HandleBone(bones[i], );
     }
-
-
-    // console.log(x, rawXMin, rawXMax, scaledX);
-    // console.log(y, rawYMin, rawYMax, scaledY);
-
-
 }
 
 function HandleHand(hand) {
     var fingers = hand.fingers;
     for (var bone_idx = 3; bone_idx >=0; bone_idx -= 1) {
         for (var finger_idx = 0; finger_idx < fingers.length; finger_idx++) {
-             HandleBone(fingers[finger_idx].bones[bone_idx]);
+             HandleBone(fingers[finger_idx].bones[bone_idx], finger_idx);
         }
     }
 
 }
 
+function RecordData() {
+    background(0);
+}
+
 function HandleFrame(frame) {
-    if (frame.hands.length == 1) {
+    currentNumHands = frame.hands.length;
+    if (currentNumHands > 0) {
         var hand = frame.hands[0];
         HandleHand(hand);
     }
+    if (previousNumHands == 2 && currentNumHands == 1) {
+        RecordData();
+        console.log(oneFrameOfData.toString());
+
+    }
+
+    previousNumHands = currentNumHands;
 }
 
 Leap.loop(controllerOptions, function(frame){

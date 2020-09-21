@@ -1,92 +1,83 @@
-var controllerOptions = {};
-
-var x = window.innerWidth/2;
-var y = window.innerHeight/2;
-
-var rawXMin = -100;
-var rawXMax = 100;
-var rawYMin = 50;
-var rawYMax = 300;
-
-function UpdateBounds(x, y, z) {
-    if (x < rawXMin) {
-        rawXMin = x;
-    } else if (x > rawXMax) {
-        rawXMax = x;
-    }
-    if (y < rawYMin) {
-        rawYMin = y;
-    } else if (y > rawYMax) {
-        rawYMax = y;
-    }
-}
-
-function TransformedCoordinates(x, y) {
-    UpdateBounds(x, y);
-    var scaledX  = ((x - rawXMin) / (rawXMax - rawXMin) ) * window.innerWidth;
-    var scaledY  = window.innerHeight - ((y - rawYMin) / (rawYMax - rawYMin) ) * window.innerHeight;
-    return [scaledX, scaledY];
-}
-
-function DrawCircle(x, y, r) {
-    [x, y] = TransformedCoordinates(x, y);
-    circle(x, y, r);
-}
-
-function DrawLine(x1, y1, x2, y2, weight, color) {
-    [x1, y1] = TransformedCoordinates(x1, y1);
-    [x2, y2] = TransformedCoordinates(x2, y2);
-    strokeWeight(weight);
-    stroke(color);
-    line(x1, y1, x2, y2);
-//    circle(scaledX, window.innerHeight - scaledY, r);
-}
+oneFrameOfData = nj.array([[[  903.83948,  164.21248,    153.527,  903.83948,  164.21248,    153.527],
+        [  903.83948,  164.21248,    153.527,  790.42162,  149.19296,    111.315],
+        [  790.42162,  149.19296,    111.315,  768.96127,  145.65632,    78.7158],
+        [  768.96127,  145.65632,    78.7158,   778.7192,    146.208,    56.1776]],
+       [[  969.70677,  139.09248,    152.004,  947.12105,    115.104,    83.5652],
+        [  947.12105,    115.104,    83.5652,  923.42008,   106.9568,    42.7693],
+        [  923.42008,   106.9568,    42.7693,  903.74771,  117.28512,    21.1383],
+        [  903.74771,  117.28512,    21.1383,  888.77445,  131.56096,    9.26624]],
+       [[ 1036.30874,  138.64448,    150.815, 1066.38364,  117.60512,    85.6697],
+        [ 1066.38364,  117.60512,    85.6697, 1108.02528,  109.18784,    40.1701],
+        [ 1108.02528,  109.18784,    40.1701, 1104.64128,  121.41696,    14.4212],
+        [ 1104.64128,  121.41696,    14.4212,  1088.1373,  136.98176,    1.26442]],
+       [[ 1101.29105,  142.10432,     150.26, 1178.38844,  125.55648,     92.752],
+        [ 1178.38844,  125.55648,     92.752,  1235.7718,  115.81312,    51.5067],
+        [  1235.7718,  115.81312,    51.5067, 1239.47614,  125.34784,    25.8113],
+        [ 1239.47614,  125.34784,    25.8113, 1224.21969,  139.07328,    11.5472]],
+       [[ 1157.20957,  154.27328,    150.229, 1272.30282,   138.5792,    99.5389],
+        [ 1272.30282,   138.5792,    99.5389, 1350.48223,   134.4576,    68.4969],
+        [ 1350.48223,   134.4576,    68.4969, 1359.38276,  142.41792,    50.7252],
+        [ 1359.38276,  142.41792,    50.7252, 1341.61548,  155.19872,    37.7789]]]);
 
 
-function HandleBone(bone) {
-    [x1, y1, z1] = bone.prevJoint;
-    [x2, y2, z2] = bone.nextJoint;
-
-    DrawLine(x1, y1, x2, y2, 2*(4 - bone.type),  (4-bone.type)*40);
-//    DrawCircle(x,y, 50);
-
-}
-
-function HandleFinger(finger) {
-//    var x, y, z;
-//    [x, y, z] = finger.tipPosition;
-//    UpdateBounds(x, y, z);
-
-    var bones = finger.bones
-    for (var i = 0; i < bones.length; i++) {
-        HandleBone(bones[i]);
-    }
-
-
-    // console.log(x, rawXMin, rawXMax, scaledX);
-    // console.log(y, rawYMin, rawYMax, scaledY);
+anotherFrameOfData = nj.array([[[ 364.43738, 194.12608,   222.017, 364.43738, 194.12608,   222.017],
+        [ 364.43738, 194.12608,   222.017, 246.16255, 180.02048,   176.395],
+        [ 246.16255, 180.02048,   176.395, 217.55425, 176.53632,   142.657],
+        [ 217.55425, 176.53632,   142.657, 248.33423, 180.09728,   119.845]],
+       [[ 458.55584,  169.3376,   220.044, 391.87251,    139.68,   150.879],
+        [ 391.87251,    139.68,   150.879, 295.46756, 143.40864,   110.316],
+        [ 295.46756, 143.40864,   110.316, 246.56265,   168.928,   98.5976],
+        [ 246.56265,   168.928,   98.5976, 231.69001, 190.52672,   100.222]],
+       [[ 542.40735,   170.016,    217.57,  543.5318, 144.57984,   150.692],
+        [  543.5318, 144.57984,   150.692, 527.81374, 144.63488,   102.545],
+        [ 527.81374, 144.63488,   102.545, 459.62602, 170.59456,   85.1872],
+        [ 459.62602, 170.59456,   85.1872, 406.58441, 192.57856,   85.0263]],
+       [[ 622.84721, 174.73408,   215.647, 687.03356, 155.29088,   155.581],
+        [ 687.03356, 155.29088,   155.581, 676.25406, 153.62816,   110.947],
+        [ 676.25406, 153.62816,   110.947, 603.60824,  176.2304,   92.3295],
+        [ 603.60824,  176.2304,   92.3295,  541.8479,  197.0624,   89.9986]],
+       [[  688.1283, 188.29824,   214.143, 805.01928,    170.88,   160.338],
+        [ 805.01928,    170.88,   160.338, 803.49402, 167.41504,   125.084],
+        [ 803.49402, 167.41504,   125.084, 741.47448, 180.80512,   111.167],
+        [ 741.47448, 180.80512,   111.167, 668.99149,  197.8624,   107.848]]]);
 
 
-}
+var frameIndex =  0;
+function draw() {
 
-function HandleHand(hand) {
-    var fingers = hand.fingers;
-    for (var bone_idx = 3; bone_idx >=0; bone_idx -= 1) {
-        for (var finger_idx = 0; finger_idx < fingers.length; finger_idx++) {
-             HandleBone(fingers[finger_idx].bones[bone_idx]);
+    clear();
+
+
+    for (var finger_id = 0; finger_id < 5; finger_id++) {
+        for (var bone_id = 0; bone_id < 4; bone_id++) {
+
+        if (frameIndex%100 < 50) {
+            currFrame = oneFrameOfData;
+                        xStart = currFrame.get(finger_id, bone_id, 0);
+            yStart = currFrame.get(finger_id, bone_id, 1);
+            zStart = currFrame.get(finger_id, bone_id, 2);
+            xEnd = currFrame.get(finger_id, bone_id, 3);
+            yEnd = currFrame.get(finger_id, bone_id, 4);
+            zStart = currFrame.get(finger_id, bone_id, 5);
+
+        } else{
+            currFrame = anotherFrameOfData;
+                        xStart = currFrame.get(finger_id, bone_id, 0);
+            yStart = currFrame.get(finger_id, bone_id, 1);
+            zStart = currFrame.get(finger_id, bone_id, 2);
+            xEnd = currFrame.get(finger_id, bone_id, 3);
+            yEnd = currFrame.get(finger_id, bone_id, 4);
+            zStart = currFrame.get(finger_id, bone_id, 5);
+
+        }
+
+            line(xStart, yStart, xEnd, yEnd);
         }
     }
+    frameIndex += 1 ;
 
-}
-
-function HandleFrame(frame) {
-    if (frame.hands.length == 1) {
-        var hand = frame.hands[0];
-        HandleHand(hand);
+    if (frameIndex == 100) {
+        frameIndex = 0;
     }
-}
 
-Leap.loop(controllerOptions, function(frame){
-    clear();
-    HandleFrame(frame);
-});
+}

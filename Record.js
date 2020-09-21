@@ -51,11 +51,16 @@ function HandleBone(bone, finger_idx) {
     [x1, y1, z1] = bone.prevJoint;
     [x2, y2, z2] = bone.nextJoint;
 
-    oneFrameOfData.set(finger_idx, bone.type, 0, x1);
-    oneFrameOfData.set(finger_idx, bone.type, 1, y1);
+    [xs1, ys1] = TransformedCoordinates(x1, y1);
+    [xs2, ys2] = TransformedCoordinates(x2, y2);
+
+
+
+    oneFrameOfData.set(finger_idx, bone.type, 0, xs1);
+    oneFrameOfData.set(finger_idx, bone.type, 1, ys1);
     oneFrameOfData.set(finger_idx, bone.type, 2, z1);
-    oneFrameOfData.set(finger_idx, bone.type, 3, x2);
-    oneFrameOfData.set(finger_idx, bone.type, 4, y2);
+    oneFrameOfData.set(finger_idx, bone.type, 3, xs2);
+    oneFrameOfData.set(finger_idx, bone.type, 4, ys2);
     oneFrameOfData.set(finger_idx, bone.type, 5, z2);
 
     color = [0,0,0]

@@ -1,3 +1,5 @@
+const knnClassifier = ml5.KNNClassifier();
+
 var irisData = nj.array([[5.1, 3.5, 1.4, 0.2, 0. ],
        [4.9, 3. , 1.4, 0.2, 0. ],
        [4.7, 3.2, 1.3, 0.2, 0. ],
@@ -149,18 +151,56 @@ var irisData = nj.array([[5.1, 3.5, 1.4, 0.2, 0. ],
        [6.2, 3.4, 5.4, 2.3, 2. ],
        [5.9, 3. , 5.1, 1.8, 2. ]]);
 
-
+var numSamples = irisData.shape[0];
+var numFeatures = irisData.shape[1] - 1;
+var predictedClassLabels = nj.zeros([numSamples]);
 var trainingCompleted = false;
+var testingCompleted = false;
+var testingSampleIndex = 1;
+
+var colorMap = {0: [255, 0, 0], 1:[0, 255, 0], 2:[0, 0, 255]};
+
+function GotResults(err, result){
+    predictedClassLabels.set(testingSampleIndex,  parseInt(result.label));
+    testingSampleIndex += 2;
+    if (testingSampleIndex >= numSamples) {
+        testingCompleted = true;
+    }
+}
 
 function Train() {
-    console.log(irisData.toString());
-
+    for (var i = 0; i < numSamples; i+=2) {
+        row = irisData.pick(i)
+        currentFeatures = row.slice([0, 4]);
+        currentLabel = row.get(4);
+        knnClassifier.addExample(currentFeatures.tolist(), currentLabel);
+    }
 }
 
 function Test() {
-
+    row = irisData.pick(testingSampleIndex)
+    currentFeatures = row.slice([0, 4]);
+    currentLabel = row.get(4);
+    predictedLabel = knnClassifier.classify(currentFeatures.tolist(), GotResults);
 }
 
+function DrawCircles() {
+    for (var i = 0; i < numSamples; i++) {
+        row = irisData.pick(i);
+        x = row.get(0);
+        y = row.get(1);
+        c = row.get(4);
+
+        fill(colorMap[c]);
+        if (i%2 == 0) {
+            stroke(0);
+        } else {
+            stroke(colorMap[predictedClassLabels.get(i)]);
+        }
+
+        circle(x * 100 , y * 100, 10);
+    }
+}
 
 function draw() {
     clear();
@@ -168,5 +208,9 @@ function draw() {
         Train();
         trainingCompleted = true;
     }
-    Test();
+    if (!testingCompleted) {
+        Test();
+    } else {
+        DrawCircles();
+    }
 }

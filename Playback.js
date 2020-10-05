@@ -47,12 +47,11 @@ function draw() {
 
     clear();
 
+    currFrame = test.pick(null, null, null, frameIndex);
 
     for (var finger_id = 0; finger_id < 5; finger_id++) {
         for (var bone_id = 0; bone_id < 4; bone_id++) {
 
-        if (frameIndex%100 < 50) {
-            currFrame = oneFrameOfData;
             xStart = currFrame.get(finger_id, bone_id, 0);
             yStart = currFrame.get(finger_id, bone_id, 1);
             zStart = currFrame.get(finger_id, bone_id, 2);
@@ -60,16 +59,6 @@ function draw() {
             yEnd = currFrame.get(finger_id, bone_id, 4);
             zStart = currFrame.get(finger_id, bone_id, 5);
 
-        } else{
-            currFrame = anotherFrameOfData;
-            xStart = currFrame.get(finger_id, bone_id, 0);
-            yStart = currFrame.get(finger_id, bone_id, 1);
-            zStart = currFrame.get(finger_id, bone_id, 2);
-            xEnd = currFrame.get(finger_id, bone_id, 3);
-            yEnd = currFrame.get(finger_id, bone_id, 4);
-            zStart = currFrame.get(finger_id, bone_id, 5);
-
-        }
 
             xStart *=  window.innerWidth;
             xEnd *=  window.innerWidth;

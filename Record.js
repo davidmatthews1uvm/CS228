@@ -30,15 +30,25 @@ function UpdateBounds(x, y, z) {
     }
 }
 
-function TransformedCoordinates(x, y) {
-    var scaledX  = x * window.innerWidth;
-    var scaledY  = (1 - y) * window.innerHeight;
-    return [scaledX, scaledY];
-}
+
 
 function DrawCircle(x, y, r) {
     [x, y] = TransformedCoordinates(x, y);
     circle(x, y, r);
+}
+
+function HandleFinger(finger) {
+    var bones = finger.bones
+    for (var i = 0; i < bones.length; i++) {
+        HandleBone(bones[i], );
+    }
+}
+
+
+function TransformedCoordinates(x, y) {
+    var scaledX  = x * window.innerWidth;
+    var scaledY  = (1 - y) * window.innerHeight;
+    return [scaledX, scaledY];
 }
 
 function DrawLine(x1, y1, x2, y2, weight, color) {
@@ -81,12 +91,7 @@ function HandleBone(bone, finger_idx, interaction_box) {
 
 }
 
-function HandleFinger(finger) {
-    var bones = finger.bones
-    for (var i = 0; i < bones.length; i++) {
-        HandleBone(bones[i], );
-    }
-}
+
 
 function HandleHand(hand, interaction_box) {
     var fingers = hand.fingers;

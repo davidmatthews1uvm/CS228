@@ -11,6 +11,11 @@ var n = 0;
 var m = 0;
 var d = 9;
 
+var programState = 0;
+
+var angle = 0;
+let period = 1000/1.5;
+
 function CenterData() {
     xValues = oneFrameOfData.slice([], [], [0,6,3]);
     currentMeanX = xValues.mean();
@@ -66,6 +71,9 @@ function GotResults(err, result){
     m = ((n-1)*m + (parseInt(result.label) == d))/n;
 
     console.log(result.label);
+
+    // text(result.label, window.innerWidth * 3/4, window.innerHeight * 3/4 );
+
 }
 function Train() {
     for (var i = 0; i < train6.shape[3]; i++) {
@@ -122,20 +130,21 @@ function Train() {
 
 function Test() {
     CenterData();
+
     predictedLabel = knnClassifier.classify(oneFrameOfData.reshape(120).tolist(), GotResults);
 }
 
 
 
-function TransformedCoordinates(x, y) {
-    var scaledX  = x * window.innerWidth;
-    var scaledY  = (1 - y) * window.innerHeight;
+function TransformedCoordinatesHand(x, y) {
+    var scaledX  = x * window.innerWidth/2;
+    var scaledY  = (1 - y) * window.innerHeight/2;
     return [scaledX, scaledY];
 }
 
 function DrawLine(x1, y1, x2, y2, weight, color) {
-    [x1, y1] = TransformedCoordinates(x1, y1);
-    [x2, y2] = TransformedCoordinates(x2, y2);
+    [x1, y1] = TransformedCoordinatesHand(x1, y1);
+    [x2, y2] = TransformedCoordinatesHand(x2, y2);
     strokeWeight(weight);
     stroke(color);
     line(x1, y1, x2, y2);
@@ -149,8 +158,8 @@ function HandleBone(bone, finger_idx, interaction_box) {
     [x1, y1, z1] = normalizedPrevJoint;
     [x2, y2, z2] = normalizedNextJoint;
 
-    [xs1, ys1] = TransformedCoordinates(x1, y1);
-    [xs2, ys2] = TransformedCoordinates(x2, y2);
+    [xs1, ys1] = TransformedCoordinatesHand(x1, y1);
+    [xs2, ys2] = TransformedCoordinatesHand(x2, y2);
 
 
 
@@ -199,22 +208,210 @@ function RecordData(previousNumHands, currentNumHands) {
 
 }
 
-function HandleFrame(frame) {
-    if (frame.hands.length > 0) {
-        var hand = frame.hands[0];
-        HandleHand(hand, frame.interactionBox);
-        Test();
+function rotate_and_draw_image(img, img_x, img_y, img_width, img_height, img_angle) {
+    imageMode(CENTER);
+    translate(img_x + img_width / 2, img_y + img_width / 2);
+    rotate(PI / 180 * img_angle);
+    image(img, 0, 0, img_width, img_height);
+    rotate(-PI / 180 * img_angle);
+    translate(-(img_x + img_width / 2), -(img_y + img_width / 2));
+    imageMode(CORNER);
+}
+
+function HandIsTooFarToTheLeft() {
+    xValues = oneFrameOfData.slice([], [], [0,6,3]);
+    currentMeanX = xValues.mean();
+    return currentMeanX < 0.25;
+}
+
+function HandIsTooFarToTheRight() {
+    xValues = oneFrameOfData.slice([], [], [0,6,3]);
+    currentMeanX = xValues.mean();
+    return currentMeanX > 0.75;
+}
+function HandIsTooFarToTheTop() {
+    yValues = oneFrameOfData.slice([], [], [1,6,3]);
+    currentMeanY = yValues.mean();
+    return currentMeanY > 0.75;
+}
+
+function HandIsTooFarToTheBottom() {
+    yValues = oneFrameOfData.slice([], [], [1,6,3]);
+    currentMeanY = yValues.mean();
+    return currentMeanY < 0.25;
+}
+function HandIsTooFarToTheScreen() {
+    zValues = oneFrameOfData.slice([], [], [2,6,3]);
+    currentMeanZ = zValues.mean();
+    return currentMeanZ < 0.25;
+}
+
+function HandIsTooFarFromTheScreen() {
+    zValues = oneFrameOfData.slice([], [], [2,6,3]);
+    currentMeanZ = zValues.mean();
+    return currentMeanZ > 0.75;
+}
+
+function HandIsUncentered() {
+    return (HandIsTooFarToTheLeft() ||
+            HandIsTooFarToTheRight() || 
+            HandIsTooFarToTheBottom() ||
+            HandIsTooFarToTheTop() ||
+            HandIsTooFarToTheScreen() ||
+            HandIsTooFarFromTheScreen() );
+}
+
+
+function DrawArrowRight() {
+    let millisecond = millis();
+    let len = 20 * (sin(millisecond / period) + 1)
+    var imgSize = window.innerHeight/16;
+    rotate_and_draw_image(arrowImg, window.innerWidth/2 - imgSize/2 - len, window.innerHeight/4, imgSize, imgSize, 0)
+    rotate_and_draw_image(handImg , window.innerWidth/2 - imgSize/2 - len, window.innerHeight/4 - imgSize, imgSize, imgSize,0)
+
+    draw_height = window.innerHeight/2;
+    draw_width = draw_height * (moveHandLeftImg.width/moveHandLeftImg.height);
+    rotate_and_draw_image(moveHandLeftImg, window.innerWidth/2 + draw_width/2, 50 , draw_width, draw_height, 0);
+}
+
+function DrawArrowLeft() {
+    let millisecond = millis();
+    let len = 20 * (sin(millisecond / period) + 1)
+    let imgSize = window.innerHeight/16
+    rotate_and_draw_image(arrowImg, len, window.innerHeight/4, imgSize, imgSize, 180)
+    rotate_and_draw_image(handImg , len, window.innerHeight/4 - imgSize, imgSize, imgSize, 0)
+
+    draw_height = window.innerHeight/2;
+    draw_width = draw_height * (moveHandRightImg.width/moveHandRightImg.height);
+    rotate_and_draw_image(moveHandRightImg, window.innerWidth/2 + draw_width/2, 50 , draw_width, draw_height, 0);
+}
+
+function DrawArrowUp() {
+    let millisecond = millis();
+    let len = 20 * (sin(millisecond / period) + 1)
+    let imgSize = window.innerHeight/16
+    rotate_and_draw_image(arrowImg, window.innerWidth/4, window.innerHeight/2 - len, imgSize, imgSize, 90)
+    rotate_and_draw_image(handImg , window.innerWidth/4 - imgSize, window.innerHeight/2  - len, imgSize, imgSize, 0)
+
+    draw_height = window.innerHeight/2;
+    draw_width = draw_height * (moveHandUpImg.width/moveHandUpImg.height);
+    rotate_and_draw_image(moveHandUpImg, window.innerWidth/2 + draw_width/2, 50 , draw_width, draw_height, 0);
+}
+
+function DrawArrowDown() {
+    let millisecond = millis();
+    let len = 20 * (sin(millisecond / period) + 1)
+    let imgSize = window.innerHeight/16
+    rotate_and_draw_image(arrowImg, window.innerWidth/4,  len, imgSize, imgSize, 270)
+    rotate_and_draw_image(handImg , window.innerWidth/4 - imgSize, len, imgSize, imgSize, 0)
+
+    draw_height = window.innerHeight/2;
+    draw_width = draw_height * (moveHandDownImg.width/moveHandDownImg.height);
+    rotate_and_draw_image(moveHandDownImg, window.innerWidth/2 + draw_width/2, 50 , draw_width, draw_height, 0);
+}
+
+function DrawArrowIn() {
+    let millisecond = millis();
+    let len = 40 * (sin(millisecond / period) + 1)
+    let imgSize = window.innerHeight/16
+    let handSize = imgSize*2+len
+    rotate_and_draw_image(arrowImg, window.innerWidth/4 - 4 * imgSize/2, window.innerHeight/4 - imgSize/2, imgSize, imgSize, 90)
+    rotate_and_draw_image(handImg , window.innerWidth/4 - handSize/2, window.innerHeight/4 - handSize/2, handSize, handSize, 0)
+
+    draw_height = window.innerHeight/2;
+    draw_width = draw_height * (moveHandTowardImg.width/moveHandTowardImg.height);
+    rotate_and_draw_image(moveHandTowardImg, window.innerWidth/2 + draw_width/2, 50 , draw_width, draw_height, 0);
+}
+
+function DrawArrowOut() {
+    let millisecond = millis();
+    let len = 40 * (sin(millisecond / period) + 1)
+    let imgSize = window.innerHeight/16
+    let handSize = (imgSize*2+len)/2
+    rotate_and_draw_image(arrowImg, window.innerWidth/4 - 4 * imgSize/2, window.innerHeight/4 - imgSize/2, imgSize, imgSize, 270)
+    rotate_and_draw_image(handImg , window.innerWidth/4 - handSize/2, window.innerHeight/4 - handSize/2, handSize, handSize, 0)
+    
+    draw_height = window.innerHeight/2;
+    draw_width = draw_height * (moveHandAwayImg.width/moveHandAwayImg.height);
+    rotate_and_draw_image(moveHandAwayImg, window.innerWidth/2 + draw_width/2, 50 , draw_width, draw_height, 0);
+
+}
+
+
+function DetermineState(frame) {
+    if (frame.hands.length  == 0) {
+        programState = 0;
+    }
+    else if (HandIsUncentered()) {
+        programState = 1;
+    } 
+    else if  (frame.hands.length == 1){
+        programState = 2;
+    }
+}
+function TrainKNNIfNotDone() {
+    // if (!trainingCompleted) {
+    //     console.log("Training...");
+    //     Train();
+    //     trainingCompleted = true;
+    //     console.log("Training complete!");
+    // }
+}
+
+function DrawImageToHelpuserPutTheirHandOverTheDevice() {
+    draw_height = window.innerHeight/2;
+    draw_width = draw_height * (handMissingImg.width/handMissingImg.height);
+    draw_offset = window.innerWidth /2 - draw_width;
+
+    rotate_and_draw_image(handMissingImg, draw_offset/2, 50 , draw_width, draw_height, 0);
+}
+
+function HandleState0(frame) {
+    TrainKNNIfNotDone();
+    DrawImageToHelpuserPutTheirHandOverTheDevice();
+}
+
+function DrawHand(frame) {
+    var hand = frame.hands[0];
+    HandleHand(hand, frame.interactionBox);
+}
+function HandleState1(frame) {
+    DrawHand(frame);
+    if (HandIsTooFarToTheLeft()) {
+        DrawArrowLeft();
+    } else if (HandIsTooFarToTheRight()) {
+        DrawArrowRight();
+    } else if (HandIsTooFarToTheBottom()) {
+        DrawArrowUp();
+    } else if (HandIsTooFarToTheTop()) {
+        DrawArrowDown();
+    } else if (HandIsTooFarToTheScreen()) {
+        DrawArrowOut();
+    } else if (HandIsTooFarFromTheScreen()) {
+        DrawArrowIn();
     }
 }
 
+function HandleState2(frame) {
+    DrawHand(frame);
+    if (trainingCompleted) {
+        // Test();
+    }
+}
+
+
+
 Leap.loop(controllerOptions, function(frame){
     clear();
-
-    if (!trainingCompleted) {
-        console.log("Training...");
-        Train();
-        trainingCompleted = true;
-        console.log("Training complete!");
+    DetermineState(frame);
+    // console.log(programState);
+    if (programState == 0) {
+        HandleState0(frame);
     }
-        HandleFrame(frame);
+    else if (programState == 1) {
+        HandleState1(frame);
+    }
+    else if (programState == 2) {
+        HandleState2(frame);
+    }
 })

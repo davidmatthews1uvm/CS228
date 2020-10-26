@@ -65,23 +65,42 @@ function GotResults(err, result){
     n += 1;
     m = ((n-1)*m + (parseInt(result.label) == d))/n;
 
-    console.log(n, m, result.label);
+    console.log(result.label);
 }
 function Train() {
     for (var i = 0; i < train6.shape[3]; i++) {
+        console.log(i);
         features = train0.pick(null, null, null, i).reshape(120);
         knnClassifier.addExample(features.tolist(), 0);
 
         features = train1.pick(null, null, null, i).reshape(120);
         knnClassifier.addExample(features.tolist(), 1);
 
+        features = train1Allison.pick(null, null, null, i).reshape(120);
+        knnClassifier.addExample(features.tolist(), 1);
+
         features = train2.pick(null, null, null, i).reshape(120);
+        knnClassifier.addExample(features.tolist(), 2);
+
+        features = train2Rielly.pick(null, null, null, i).reshape(120);
+        knnClassifier.addExample(features.tolist(), 2);
+
+        features = train2Banaszewski.pick(null, null, null, i).reshape(120);
+        knnClassifier.addExample(features.tolist(), 2);
+
+        features = train2Downs.pick(null, null, null, i).reshape(120);
         knnClassifier.addExample(features.tolist(), 2);
 
         features = train3.pick(null, null, null, i).reshape(120);
         knnClassifier.addExample(features.tolist(), 3);
 
         features = train4.pick(null, null, null, i).reshape(120);
+        knnClassifier.addExample(features.tolist(), 4);
+
+        features = train4Makovsky.pick(null, null, null, i).reshape(120);
+        knnClassifier.addExample(features.tolist(), 4);
+
+        features = train4Bertschinger.pick(null, null, null, i).reshape(120);
         knnClassifier.addExample(features.tolist(), 4);
 
         features = train5.pick(null, null, null, i).reshape(120);

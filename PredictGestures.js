@@ -16,6 +16,47 @@ var programState = 0;
 var angle = 0;
 let period = 1000/1.5;
 
+function IsReturningUser(username) {
+    users = document.getElementsByTagName("li");
+    for (var idx =0; idx < users.length; idx++) {
+        if (username == users[idx].innerHTML) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function CreateNewUser(username, list) {
+    var item = document.createElement("li");
+    item.innerHTML = String(username);
+    item.id = String(username) + "_name"
+    list.appendChild(item);
+
+}
+
+function createSignInItem(username, list) {
+    var item = document.createElement("li");
+    item.innerHTML = 1;
+    item.id = String(username) + "_signins"
+    list.appendChild(item);
+
+}
+
+function SignIn() {
+    username = document.getElementById("username").value;
+    var list = document.getElementById("users");
+    if (!IsReturningUser(username)) {
+        CreateNewUser(username, list);
+        createSignInItem(username, list);
+    } else {
+        ID = String(username) + "_signins";
+        listItem = document.getElementById(ID);
+            listItem.innerHTML = parseInt(listItem.innerHTML)  + 1;
+    }
+    console.log(list.innerHTML);
+    return false;
+}
+
 function CenterData() {
     xValues = oneFrameOfData.slice([], [], [0,6,3]);
     currentMeanX = xValues.mean();

@@ -8,13 +8,17 @@ var colorMap = {0: [255, 0, 0], 1:[0, 255, 0], 2:[0, 0, 255]};
 var oneFrameOfData = nj.zeros([5, 4, 6]);
 
 var n = 0;
-var m = 0;
+var mean_prediction_accuracy = 0;
 var d = 9;
 
 var programState = 0;
 
 var angle = 0;
 let period = 1000/1.5;
+
+var digitToShow = 0;
+
+var timeSinceLastDigitChange = new Date();
 
 function IsReturningUser(username) {
     users = document.getElementsByTagName("li");
@@ -109,9 +113,9 @@ function CenterData() {
 
 function GotResults(err, result){
     n += 1;
-    m = ((n-1)*m + (parseInt(result.label) == d))/n;
+    mean_prediction_accuracy = ((n-1)*mean_prediction_accuracy + (parseInt(result.label) == digitToShow))/n;
 
-    console.log(result.label);
+    console.log(result.label, n, mean_prediction_accuracy);
 
     // text(result.label, window.innerWidth * 3/4, window.innerHeight * 3/4 );
 
@@ -126,6 +130,9 @@ function Train() {
         knnClassifier.addExample(features.tolist(), 1);
 
         features = train1Allison.pick(null, null, null, i).reshape(120);
+        knnClassifier.addExample(features.tolist(), 1);
+
+        features = train1Bongard.pick(null, null, null, i).reshape(120);
         knnClassifier.addExample(features.tolist(), 1);
 
         features = train2.pick(null, null, null, i).reshape(120);
@@ -186,6 +193,7 @@ function TransformedCoordinatesHand(x, y) {
 function DrawLine(x1, y1, x2, y2, weight, color) {
     [x1, y1] = TransformedCoordinatesHand(x1, y1);
     [x2, y2] = TransformedCoordinatesHand(x2, y2);
+    colorMode(RGB);
     strokeWeight(weight);
     stroke(color);
     line(x1, y1, x2, y2);
@@ -213,7 +221,8 @@ function HandleBone(bone, finger_idx, interaction_box) {
 
     // color = [160, 160, 160]
     // if (currentNumHands == 1) {
-    color = [(4-bone.type)*40, (4-bone.type)*40, (4-bone.type)*40];
+    // R G B
+    color = [(2-bone.type/2)*125*(1 - mean_prediction_accuracy), (2-bone.type/2)*125*(mean_prediction_accuracy), 0];
     // } else if (currentNumHands == 2) {
     //     color = [(4-bone.type)*40, 0, 0];
     // }
@@ -389,14 +398,40 @@ function DetermineState(frame) {
     else if  (frame.hands.length == 1){
         programState = 2;
     }
+    if (TimeToSwitchDigits()) {
+        SwitchDigits();
+    }
 }
+function TimeToSwitchDigits() {
+    currentTime = new Date();
+    timeDifferenceInMs = currentTime - timeSinceLastDigitChange;
+    timeDifferenceInS = timeDifferenceInMs/1000;
+    if (timeDifferenceInS > 5) {
+        timeSinceLastDigitChange = currentTime;
+        return true;
+    } else {
+        return false;
+    }
+
+}
+
+function SwitchDigits() {
+    n = 0;
+    mean_prediction_accuracy = 0;
+    if (digitToShow == 0) {
+        digitToShow = 1;
+    } else if (digitToShow == 1) {
+        digitToShow = 0;
+    }
+}
+
 function TrainKNNIfNotDone() {
-    // if (!trainingCompleted) {
-    //     console.log("Training...");
-    //     Train();
-    //     trainingCompleted = true;
-    //     console.log("Training complete!");
-    // }
+    if (!trainingCompleted) {
+        console.log("Training...");
+        Train();
+        trainingCompleted = true;
+        console.log("Training complete!");
+    }
 }
 
 function DrawImageToHelpuserPutTheirHandOverTheDevice() {
@@ -405,6 +440,26 @@ function DrawImageToHelpuserPutTheirHandOverTheDevice() {
     draw_offset = window.innerWidth /2 - draw_width;
 
     rotate_and_draw_image(handMissingImg, draw_offset/2, 50 , draw_width, draw_height, 0);
+}
+
+
+function DrawLowerRightPanel() {
+     if (digitToShow == 0) {
+        img_x = window.innerWidth / 2;
+        img_y = window.innerHeight / 2;
+        draw_height = img_y;
+        draw_width = draw_height * (aslZeroImg.width/aslZeroImg.height);
+
+        rotate_and_draw_image(aslZeroImg, img_x, img_y, draw_width, draw_height, 0)
+
+    } else if (digitToShow == 1) {
+        img_x = window.innerWidth / 2;
+        img_y = window.innerHeight / 2;
+        draw_height = img_y;
+        draw_width = draw_height * (aslOneImg.width/aslOneImg.height);
+
+        rotate_and_draw_image(aslOneImg, img_x, img_y, draw_width, draw_height, 0)
+    }
 }
 
 function HandleState0(frame) {
@@ -435,8 +490,9 @@ function HandleState1(frame) {
 
 function HandleState2(frame) {
     DrawHand(frame);
+    DrawLowerRightPanel();
     if (trainingCompleted) {
-        // Test();
+        Test();
     }
 }
 

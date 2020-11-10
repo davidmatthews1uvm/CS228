@@ -11,4 +11,6 @@ function setup() {
     moveHandDownImg = loadImage("https://i.imgur.com/F2c6feL.jpg");
     moveHandLeftImg = loadImage("https://i.imgur.com/BpEB4ux.jpg");
     moveHandRightImg = loadImage("https://i.imgur.com/aSEir7W.jpg");
+    aslZeroImg = loadImage("https://i.imgur.com/4RlXhtw.png");
+    aslOneImg = loadImage("https://i.imgur.com/HIFdyTl.png");
 }

@@ -11,12 +11,19 @@ var n = 0;
 var mean_prediction_accuracy = 0;
 var d = 9;
 
+var mean_prediction_accuracies = [0,0,0,0,0,0,0,0,0,0];
+var num_attempts_per_digit     = [0,0,0,0,0,0,0,0,0,0];
 var programState = 0;
 
 var angle = 0;
 let period = 1000/1.5;
 
 var digitToShow = 0;
+var digitsToShow = 1;
+var maxDigitsToShow = 2;
+var imageUpTime = 3;
+var signDigitTime = 5;
+var signDigitTimeFrac = 1;
 
 var timeSinceLastDigitChange = new Date();
 
@@ -115,7 +122,14 @@ function GotResults(err, result){
     n += 1;
     mean_prediction_accuracy = ((n-1)*mean_prediction_accuracy + (parseInt(result.label) == digitToShow))/n;
 
-    console.log(result.label, n, mean_prediction_accuracy);
+
+    num_attempts_per_digit[digitToShow] += 1;
+    curr_accuracy = mean_prediction_accuracies[digitToShow];
+    curr_n = num_attempts_per_digit[digitToShow];
+    mean_prediction_accuracies[digitToShow] = ((curr_n-1)*curr_accuracy + (parseInt(result.label) == digitToShow))/curr_n
+
+    console.log("current", digitToShow, result.label, n, mean_prediction_accuracy, "lifetime: ", curr_n, mean_prediction_accuracies[digitToShow] );
+
 
     // text(result.label, window.innerWidth * 3/4, window.innerHeight * 3/4 );
 
@@ -147,32 +161,35 @@ function Train() {
         features = train2Downs.pick(null, null, null, i).reshape(120);
         knnClassifier.addExample(features.tolist(), 2);
 
-        features = train3.pick(null, null, null, i).reshape(120);
-        knnClassifier.addExample(features.tolist(), 3);
+        features = train2Jimmo.pick(null, null, null, i).reshape(120);
+        knnClassifier.addExample(features.tolist(), 2);
 
-        features = train4.pick(null, null, null, i).reshape(120);
-        knnClassifier.addExample(features.tolist(), 4);
+        // features = train3.pick(null, null, null, i).reshape(120);
+        // knnClassifier.addExample(features.tolist(), 3);
 
-        features = train4Makovsky.pick(null, null, null, i).reshape(120);
-        knnClassifier.addExample(features.tolist(), 4);
+        // features = train4.pick(null, null, null, i).reshape(120);
+        // knnClassifier.addExample(features.tolist(), 4);
 
-        features = train4Bertschinger.pick(null, null, null, i).reshape(120);
-        knnClassifier.addExample(features.tolist(), 4);
+        // features = train4Makovsky.pick(null, null, null, i).reshape(120);
+        // knnClassifier.addExample(features.tolist(), 4);
 
-        features = train5.pick(null, null, null, i).reshape(120);
-        knnClassifier.addExample(features.tolist(), 5);
+        // features = train4Bertschinger.pick(null, null, null, i).reshape(120);
+        // knnClassifier.addExample(features.tolist(), 4);
 
-        features = train6.pick(null, null, null, i).reshape(120);
-        knnClassifier.addExample(features.tolist(), 6);
+        // features = train5.pick(null, null, null, i).reshape(120);
+        // knnClassifier.addExample(features.tolist(), 5);
 
-        features = train7.pick(null, null, null, i).reshape(120);
-        knnClassifier.addExample(features.tolist(), 7);
+        // features = train6.pick(null, null, null, i).reshape(120);
+        // knnClassifier.addExample(features.tolist(), 6);
 
-        features = train8.pick(null, null, null, i).reshape(120);
-        knnClassifier.addExample(features.tolist(), 8);
+        // features = train7.pick(null, null, null, i).reshape(120);
+        // knnClassifier.addExample(features.tolist(), 7);
 
-        features = train9.pick(null, null, null, i).reshape(120);
-        knnClassifier.addExample(features.tolist(), 9);
+        // features = train8.pick(null, null, null, i).reshape(120);
+        // knnClassifier.addExample(features.tolist(), 8);
+
+        // features = train9.pick(null, null, null, i).reshape(120);
+        // knnClassifier.addExample(features.tolist(), 9);
     }
 }
 
@@ -406,7 +423,17 @@ function TimeToSwitchDigits() {
     currentTime = new Date();
     timeDifferenceInMs = currentTime - timeSinceLastDigitChange;
     timeDifferenceInS = timeDifferenceInMs/1000;
-    if (timeDifferenceInS > 5) {
+    
+    curr_accuracy = mean_prediction_accuracies[digitToShow];
+    if (curr_accuracy > 0.3) {
+        signDigitTimeFrac = ( 1 - curr_accuracy);
+    }
+
+    if (curr_accuracy > 0.7) {
+        signDigitTimeFrac = 0.3;
+    }
+    
+    if (timeDifferenceInS > signDigitTime * signDigitTimeFrac) {
         timeSinceLastDigitChange = currentTime;
         return true;
     } else {
@@ -418,10 +445,22 @@ function TimeToSwitchDigits() {
 function SwitchDigits() {
     n = 0;
     mean_prediction_accuracy = 0;
-    if (digitToShow == 0) {
-        digitToShow = 1;
-    } else if (digitToShow == 1) {
-        digitToShow = 0;
+    digitToShow = 0;
+    last_accuracy = 1;
+    for (var i = 0; i < digitsToShow; i++) {
+        if (mean_prediction_accuracies[i] < last_accuracy) {
+            last_accuracy = mean_prediction_accuracies[i];
+            digitToShow = i;
+        }
+    }
+    if (last_accuracy > 0.7) {
+        if (digitsToShow < maxDigitsToShow) {
+            digitsToShow += 1;
+            digitToShow = digitsToShow - 1;
+        }
+        else {
+            digitToShow = getRandomInt(digitsToShow);
+        } 
     }
 }
 
@@ -444,22 +483,55 @@ function DrawImageToHelpuserPutTheirHandOverTheDevice() {
 
 
 function DrawLowerRightPanel() {
-     if (digitToShow == 0) {
-        img_x = window.innerWidth / 2;
-        img_y = window.innerHeight / 2;
-        draw_height = img_y;
-        draw_width = draw_height * (aslZeroImg.width/aslZeroImg.height);
-
-        rotate_and_draw_image(aslZeroImg, img_x, img_y, draw_width, draw_height, 0)
-
-    } else if (digitToShow == 1) {
-        img_x = window.innerWidth / 2;
-        img_y = window.innerHeight / 2;
-        draw_height = img_y;
-        draw_width = draw_height * (aslOneImg.width/aslOneImg.height);
-
-        rotate_and_draw_image(aslOneImg, img_x, img_y, draw_width, draw_height, 0)
+    currentTime = new Date();
+    timeDifferenceInMs = currentTime - timeSinceLastDigitChange;
+    timeDifferenceInS = timeDifferenceInMs/1000;
+    var imageUpTimeFrac = 1.0;
+    curr_accuracy = mean_prediction_accuracies[digitToShow];
+    if (curr_accuracy > 0.3) {
+            imageUpTimeFrac = ( 1- curr_accuracy);
     }
+    if (curr_accuracy > 0.7) {
+        imageUpTimeFrac = 0;
+    }
+    if (timeDifferenceInS < imageUpTime * imageUpTimeFrac) {
+
+        var aslImage;
+
+        switch (digitToShow) {
+            case 0:  aslImage = aslZeroImg; break;
+            case 1:  aslImage = aslOneImg; break;
+            case 2:  aslImage = aslTwoImg; break;
+            case 3:  aslImage = aslThreeImg; break;
+            case 4:  aslImage = aslFourImg; break;
+            case 5:  aslImage = aslFiveImg; break;
+            case 6:  aslImage = aslSixImg; break;
+            case 7:  aslImage = aslSevenImg; break;
+            case 8:  aslImage = aslEightImg; break;
+            case 9:  aslImage = aslNineImg; break;
+        }
+            img_x = window.innerWidth / 2;
+            img_y = window.innerHeight / 2;
+            draw_height = img_y;
+            draw_width = draw_height * (aslImage.width/aslImage.height);
+    
+            rotate_and_draw_image(aslImage, img_x, img_y, draw_width, draw_height, 0)
+        }
+ 
+}
+
+function DrawLowerLeftPanel() {
+    currentTime = new Date();
+    timeDifferenceInMs = currentTime - timeSinceLastDigitChange;
+    timeDifferenceInS = timeDifferenceInMs/1000;
+    timeLeft = signDigitTime * signDigitTimeFrac - timeDifferenceInS
+    textSize(32);
+    strokeWeight(1);
+    text(digitToShow,  window.innerWidth / 8,  5 * window.innerHeight / 8);
+    stroke([0,0,0]);
+    text(timeLeft.toFixed(2), 3 * window.innerWidth / 8,  5 * window.innerHeight / 8);
+
+    text(mean_prediction_accuracies[digitToShow].toFixed(2), 3 * window.innerWidth / 8,  7 * window.innerHeight / 8);
 }
 
 function HandleState0(frame) {
@@ -491,11 +563,15 @@ function HandleState1(frame) {
 function HandleState2(frame) {
     DrawHand(frame);
     DrawLowerRightPanel();
+    DrawLowerLeftPanel();
     if (trainingCompleted) {
         Test();
     }
 }
 
+function getRandomInt(max) {
+    return Math.floor(Math.random() * Math.floor(max));
+}
 
 
 Leap.loop(controllerOptions, function(frame){

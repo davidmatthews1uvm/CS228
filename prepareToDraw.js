@@ -13,4 +13,12 @@ function setup() {
     moveHandRightImg = loadImage("https://i.imgur.com/aSEir7W.jpg");
     aslZeroImg = loadImage("https://i.imgur.com/4RlXhtw.png");
     aslOneImg = loadImage("https://i.imgur.com/HIFdyTl.png");
+    aslTwoImg = loadImage("https://i.imgur.com/Sq8O88t.png"); 
+    aslThreeImg = loadImage("https://i.imgur.com/kR2bEDm.png"); 
+    aslFourImg = loadImage("https://i.imgur.com/XXnhAc3.png"); 
+    aslFiveImg = loadImage("https://i.imgur.com/detzbR9.png"); 
+    aslSixImg = loadImage("https://i.imgur.com/SLruDfP.png"); 
+    aslSevenImg = loadImage("https://i.imgur.com/Re46Ev9.png"); 
+    aslEightImg = loadImage("https://i.imgur.com/DNJvXvV.png"); 
+    aslNineImg = loadImage("https://i.imgur.com/2hM7mll.png"); 
 }

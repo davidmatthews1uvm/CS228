@@ -19,8 +19,10 @@ var angle = 0;
 let period = 1000/1.5;
 
 var digitToShow = 0;
+var strToShow = "";
+var digitSeen = 0;
 var digitsToShow = 1;
-var maxDigitsToShow = 2;
+var maxDigitsToShow = 9;
 var imageUpTime = 3;
 var signDigitTime = 5;
 var signDigitTimeFrac = 1;
@@ -129,7 +131,7 @@ function GotResults(err, result){
     mean_prediction_accuracies[digitToShow] = ((curr_n-1)*curr_accuracy + (parseInt(result.label) == digitToShow))/curr_n
 
     console.log("current", digitToShow, result.label, n, mean_prediction_accuracy, "lifetime: ", curr_n, mean_prediction_accuracies[digitToShow] );
-
+    digitSeen = parseInt(result.label)
 
     // text(result.label, window.innerWidth * 3/4, window.innerHeight * 3/4 );
 
@@ -164,32 +166,32 @@ function Train() {
         features = train2Jimmo.pick(null, null, null, i).reshape(120);
         knnClassifier.addExample(features.tolist(), 2);
 
-        // features = train3.pick(null, null, null, i).reshape(120);
-        // knnClassifier.addExample(features.tolist(), 3);
+        features = train3.pick(null, null, null, i).reshape(120);
+        knnClassifier.addExample(features.tolist(), 3);
 
-        // features = train4.pick(null, null, null, i).reshape(120);
-        // knnClassifier.addExample(features.tolist(), 4);
+        features = train4.pick(null, null, null, i).reshape(120);
+        knnClassifier.addExample(features.tolist(), 4);
 
-        // features = train4Makovsky.pick(null, null, null, i).reshape(120);
-        // knnClassifier.addExample(features.tolist(), 4);
+        features = train4Makovsky.pick(null, null, null, i).reshape(120);
+        knnClassifier.addExample(features.tolist(), 4);
 
-        // features = train4Bertschinger.pick(null, null, null, i).reshape(120);
-        // knnClassifier.addExample(features.tolist(), 4);
+        features = train4Bertschinger.pick(null, null, null, i).reshape(120);
+        knnClassifier.addExample(features.tolist(), 4);
 
-        // features = train5.pick(null, null, null, i).reshape(120);
-        // knnClassifier.addExample(features.tolist(), 5);
+        features = train5.pick(null, null, null, i).reshape(120);
+        knnClassifier.addExample(features.tolist(), 5);
 
-        // features = train6.pick(null, null, null, i).reshape(120);
-        // knnClassifier.addExample(features.tolist(), 6);
+        features = train6.pick(null, null, null, i).reshape(120);
+        knnClassifier.addExample(features.tolist(), 6);
 
-        // features = train7.pick(null, null, null, i).reshape(120);
-        // knnClassifier.addExample(features.tolist(), 7);
+        features = train7.pick(null, null, null, i).reshape(120);
+        knnClassifier.addExample(features.tolist(), 7);
 
-        // features = train8.pick(null, null, null, i).reshape(120);
-        // knnClassifier.addExample(features.tolist(), 8);
+        features = train8.pick(null, null, null, i).reshape(120);
+        knnClassifier.addExample(features.tolist(), 8);
 
-        // features = train9.pick(null, null, null, i).reshape(120);
-        // knnClassifier.addExample(features.tolist(), 9);
+        features = train9.pick(null, null, null, i).reshape(120);
+        knnClassifier.addExample(features.tolist(), 9);
     }
 }
 
@@ -414,9 +416,9 @@ function DetermineState(frame) {
     } 
     else if  (frame.hands.length == 1){
         programState = 2;
-    }
-    if (TimeToSwitchDigits()) {
-        SwitchDigits();
+        if (TimeToSwitchDigits()) {
+            SwitchDigits();
+        }    
     }
 }
 function TimeToSwitchDigits() {
@@ -424,16 +426,24 @@ function TimeToSwitchDigits() {
     timeDifferenceInMs = currentTime - timeSinceLastDigitChange;
     timeDifferenceInS = timeDifferenceInMs/1000;
     
-    curr_accuracy = mean_prediction_accuracies[digitToShow];
-    if (curr_accuracy > 0.3) {
-        signDigitTimeFrac = ( 1 - curr_accuracy);
-    }
+    // disable current accuracy impact time to sign
 
-    if (curr_accuracy > 0.7) {
-        signDigitTimeFrac = 0.3;
+    // curr_accuracy = mean_prediction_accuracies[digitToShow];
+    // if (curr_accuracy > 0.3) {
+    //     signDigitTimeFrac = ( 1 - curr_accuracy);
+    // }
+
+    // if (curr_accuracy > 0.7) {
+    //     signDigitTimeFrac = 0.3;
+    // }
+    if (mean_prediction_accuracy > 0.5) {
+        timeSinceLastDigitChange = currentTime;
+        return true
     }
-    
-    if (timeDifferenceInS > signDigitTime * signDigitTimeFrac) {
+    if (timeDifferenceInS > signDigitTime - 0.2 && mean_prediction_accuracy < 0.3) {
+        background([125*(1-mean_prediction_accuracy), 0, 0]);
+    }
+    if (timeDifferenceInS > signDigitTime ) { //signDigitTimeFrac) {
         timeSinceLastDigitChange = currentTime;
         return true;
     } else {
@@ -445,23 +455,36 @@ function TimeToSwitchDigits() {
 function SwitchDigits() {
     n = 0;
     mean_prediction_accuracy = 0;
-    digitToShow = 0;
-    last_accuracy = 1;
-    for (var i = 0; i < digitsToShow; i++) {
-        if (mean_prediction_accuracies[i] < last_accuracy) {
-            last_accuracy = mean_prediction_accuracies[i];
-            digitToShow = i;
-        }
+    digitToShow = getRandomInt(maxDigitsToShow);
+
+    a = getRandomInt(9);
+    b = digitToShow - a;
+    strToShow = ""+a;
+    if (b < 0) {
+        strToShow += " - "+(-1)*b;
+    } else {
+        strToShow += " + "+b;
     }
-    if (last_accuracy > 0.7) {
-        if (digitsToShow < maxDigitsToShow) {
-            digitsToShow += 1;
-            digitToShow = digitsToShow - 1;
-        }
-        else {
-            digitToShow = getRandomInt(digitsToShow);
-        } 
-    }
+    strToShow += " = ?";
+
+    // disable for math work.
+    // digitToShow = 0;
+    // last_accuracy = 1;
+    // for (var i = 0; i < digitsToShow; i++) {
+    //     if (mean_prediction_accuracies[i] < last_accuracy) {
+    //         last_accuracy = mean_prediction_accuracies[i];
+    //         digitToShow = i;
+    //     }
+    // }
+    // if (last_accuracy > 0.7) {
+    //     if (digitsToShow < maxDigitsToShow) {
+    //         digitsToShow += 1;
+    //         digitToShow = digitsToShow - 1;
+    //     }
+    //     else {
+    //         digitToShow = getRandomInt(digitsToShow);
+    //     } 
+    // }
 }
 
 function TrainKNNIfNotDone() {
@@ -527,11 +550,20 @@ function DrawLowerLeftPanel() {
     timeLeft = signDigitTime * signDigitTimeFrac - timeDifferenceInS
     textSize(32);
     strokeWeight(1);
-    text(digitToShow,  window.innerWidth / 8,  5 * window.innerHeight / 8);
-    stroke([0,0,0]);
-    text(timeLeft.toFixed(2), 3 * window.innerWidth / 8,  5 * window.innerHeight / 8);
 
-    text(mean_prediction_accuracies[digitToShow].toFixed(2), 3 * window.innerWidth / 8,  7 * window.innerHeight / 8);
+    // a + b = ?
+    // ? = digitToShow
+
+
+    stroke([0,0,0]);
+
+    text(strToShow,  window.innerWidth / 8,  5 * window.innerHeight / 8);
+    text(timeLeft.toFixed(2) +" s", 3 * window.innerWidth / 8,  5 * window.innerHeight / 8);
+
+    // text(digitSeen, 3 * window.innerWidth / 8,  7 * window.innerHeight / 8);
+
+    text((mean_prediction_accuracies[digitToShow]*100).toFixed(1) + "%",  window.innerWidth / 8,  7 * window.innerHeight / 8);
+
 }
 
 function HandleState0(frame) {
@@ -561,6 +593,10 @@ function HandleState1(frame) {
 }
 
 function HandleState2(frame) {
+    if (mean_prediction_accuracy > 0.3) {
+        background([0, 255 * mean_prediction_accuracy, 0]);
+    }
+
     DrawHand(frame);
     DrawLowerRightPanel();
     DrawLowerLeftPanel();

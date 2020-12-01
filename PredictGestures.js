@@ -8,6 +8,7 @@ var colorMap = {0: [255, 0, 0], 1:[0, 255, 0], 2:[0, 0, 255]};
 var oneFrameOfData = nj.zeros([5, 4, 6]);
 
 var n = 0;
+var m = 0;
 var mean_prediction_accuracy = 0;
 var d = 9;
 
@@ -22,7 +23,7 @@ var digitToShow = 0;
 var strToShow = "";
 var digitSeen = 0;
 var digitsToShow = 1;
-var maxDigitsToShow = 9;
+var maxDigitsToShow = 10;
 var imageUpTime = 3;
 var signDigitTime = 5;
 var signDigitTimeFrac = 1;
@@ -55,12 +56,71 @@ function createSignInItem(username, list) {
 
 }
 
+function createDigitInfo(username, list,  digit) {
+    var item = document.createElement("li");
+    item.innerHTML = 0;
+    item.id = String(username) + "_" + digit + "_attempts"
+    list.appendChild(item);
+
+    item = document.createElement("li");
+    item.innerHTML = 0;
+    item.id = String(username) + "_" + digit + "_accuracy"
+    list.appendChild(item);
+}
+
+function addDigitAttempt(is_correct) {
+    digit = digitToShow
+    username = document.getElementById("username").value;
+    ID = String(username) + "_" + digit + "_attempts";
+    listItem = document.getElementById(ID);
+    if (!listItem) {
+        return
+    }
+    listItem.innerHTML = parseInt(listItem.innerHTML)  + 1;
+    num_attempts = parseInt(listItem.innerHTML);
+
+    ID = String(username) + "_" + digit + "_accuracy";
+    listItem = document.getElementById(ID);
+    curr_accuracy = parseFloat(listItem.innerHTML);
+    listItem.innerHTML =  ((num_attempts-1)*curr_accuracy + (is_correct))/num_attempts;
+}
+
+function getPastDigitInfo(digit) {
+    username = document.getElementById("username").value;
+    return getPastDigitInfo(digit, username);
+}
+
+function getPastDigitInfo(digit, username) {
+    is_correct = mean_prediction_accuracy > 0.6;
+    ID = String(username) + "_" + digit + "_attempts";
+    listItem = document.getElementById(ID);
+    if (!listItem) {
+        return [0,0]
+    }
+    num_attempts = parseInt(listItem.innerHTML);
+
+    ID = String(username) + "_" + digit + "_accuracy";
+    listItem = document.getElementById(ID);
+    curr_accuracy = parseFloat(listItem.innerHTML);
+
+    return [num_attempts, curr_accuracy]
+}
+
 function SignIn() {
+    for (var idx = 0; idx < 10; idx++) {
+        [num_attempts, accuracy] = getPastDigitInfo(idx);
+        num_attempts_per_digit[idx] = num_attempts;
+        mean_prediction_accuracies[idx] = accuracy;
+    }
+
     username = document.getElementById("username").value;
     var list = document.getElementById("users");
     if (!IsReturningUser(username)) {
         CreateNewUser(username, list);
         createSignInItem(username, list);
+        for (var idx =0; idx < 10; idx++) {
+            createDigitInfo(username, list, idx);
+        }
     } else {
         ID = String(username) + "_signins";
         listItem = document.getElementById(ID);
@@ -123,21 +183,21 @@ function CenterData() {
 function GotResults(err, result){
     n += 1;
     mean_prediction_accuracy = ((n-1)*mean_prediction_accuracy + (parseInt(result.label) == digitToShow))/n;
-
+    m += (parseInt(result.label) == digitToShow);
 
     num_attempts_per_digit[digitToShow] += 1;
     curr_accuracy = mean_prediction_accuracies[digitToShow];
     curr_n = num_attempts_per_digit[digitToShow];
     mean_prediction_accuracies[digitToShow] = ((curr_n-1)*curr_accuracy + (parseInt(result.label) == digitToShow))/curr_n
 
-    console.log("current", digitToShow, result.label, n, mean_prediction_accuracy, "lifetime: ", curr_n, mean_prediction_accuracies[digitToShow] );
+    // console.log("current", digitToShow, result.label, n, mean_prediction_accuracy, "lifetime: ", curr_n, mean_prediction_accuracies[digitToShow] );
     digitSeen = parseInt(result.label)
 
     // text(result.label, window.innerWidth * 3/4, window.innerHeight * 3/4 );
-
+    addDigitAttempt((parseInt(result.label) == digitToShow))
 }
 function Train() {
-    for (var i = 0; i < train6.shape[3]; i++) {
+    for (var i = 0; i < train6.shape[3]< 10; i++) {
         console.log(i);
         features = train0.pick(null, null, null, i).reshape(120);
         knnClassifier.addExample(features.tolist(), 0);
@@ -436,7 +496,7 @@ function TimeToSwitchDigits() {
     // if (curr_accuracy > 0.7) {
     //     signDigitTimeFrac = 0.3;
     // }
-    if (mean_prediction_accuracy > 0.5) {
+    if (mean_prediction_accuracy > 0.7) {
         timeSinceLastDigitChange = currentTime;
         return true
     }
@@ -454,6 +514,7 @@ function TimeToSwitchDigits() {
 
 function SwitchDigits() {
     n = 0;
+    m = 0;
     mean_prediction_accuracy = 0;
     digitToShow = getRandomInt(maxDigitsToShow);
 
@@ -504,7 +565,6 @@ function DrawImageToHelpuserPutTheirHandOverTheDevice() {
     rotate_and_draw_image(handMissingImg, draw_offset/2, 50 , draw_width, draw_height, 0);
 }
 
-
 function DrawLowerRightPanel() {
     currentTime = new Date();
     timeDifferenceInMs = currentTime - timeSinceLastDigitChange;
@@ -537,10 +597,14 @@ function DrawLowerRightPanel() {
             img_y = window.innerHeight / 2;
             draw_height = img_y;
             draw_width = draw_height * (aslImage.width/aslImage.height);
-    
-            rotate_and_draw_image(aslImage, img_x, img_y, draw_width, draw_height, 0)
+            rotate_and_draw_image(aslImage, img_x, img_y, draw_width, draw_height , 0)
         }
- 
+    textSize(32);
+    strokeWeight(1);
+    stroke([0,0,0]);
+
+    timeLeft = signDigitTime * signDigitTimeFrac - timeDifferenceInS
+    text(timeLeft.toFixed(2) +" s", 5 * window.innerWidth / 8,  7 * window.innerHeight / 8);
 }
 
 function DrawLowerLeftPanel() {
@@ -557,14 +621,90 @@ function DrawLowerLeftPanel() {
 
     stroke([0,0,0]);
 
-    text(strToShow,  window.innerWidth / 8,  5 * window.innerHeight / 8);
-    text(timeLeft.toFixed(2) +" s", 3 * window.innerWidth / 8,  5 * window.innerHeight / 8);
+    // math equation
+    text(strToShow,  window.innerWidth / 16,  10 * window.innerHeight / 16);
 
-    // text(digitSeen, 3 * window.innerWidth / 8,  7 * window.innerHeight / 8);
+    text((mean_prediction_accuracy*100).toFixed(1) + "% ( " + m + " / " + n + " )",  
+                window.innerWidth / 16,
+                12 * window.innerHeight / 16);
+    text((mean_prediction_accuracies[digitToShow]*100).toFixed(1) + "% (  " + " / " + num_attempts_per_digit[digitToShow] + " )",
+                window.innerWidth / 16, 
+                13 * window.innerHeight / 16);
 
-    text((mean_prediction_accuracies[digitToShow]*100).toFixed(1) + "%",  window.innerWidth / 8,  7 * window.innerHeight / 8);
+    // between 0 and window.innerWidth/2 into 16 segments.
+    square_size = window.innerWidth / 32;
+    round_radius = square_size/4;
+    y_pos = 14 *  window.innerHeight / 16 
 
+    // boxes for each digit accuracy.
+    for (var idx =0; idx < 10; idx++) {
+        x_pos = square_size* (2 + idx);
+        digit_accuracy = 0;
+        if (num_attempts_per_digit[idx] == 0) {
+            fill([125, 125, 125]);
+        } else {
+            digit_accuracy = mean_prediction_accuracies[idx];
+            background_intensity = (125) * (1-digit_accuracy);
+            fill([background_intensity, (mean_prediction_accuracies[idx])*(255 - background_intensity) + background_intensity, background_intensity]);
+        }
+        square(x_pos, y_pos, square_size, round_radius);
+        fill([0,0,0])
+        textSize(24)
+        text(idx, x_pos + square_size/4 , y_pos + square_size * 4/8);
+        textSize(14)
+        text((digit_accuracy*num_attempts_per_digit[idx]).toFixed(0) + "/" + num_attempts_per_digit[idx], x_pos + square_size/8 , y_pos + square_size * 7/8);
+    }
+
+    fill(0,0,0);
+    DrawRankingPanel();
 }
+
+function orderUsers(a ,b) {
+    [num_a, acc_a] = getPastDigitInfo(digitToShow, a);
+    [num_b, acc_b] = getPastDigitInfo(digitToShow, b);
+    return acc_a < acc_b;
+}
+
+function DrawRankingPanel() {
+    row_x = 8 * window.innerWidth / 32;
+    row_w = 4 * window.innerWidth / 32;
+    row_y = 10 * window.innerHeight / 16;
+    row_h = window.innerWidth / 32;
+    max_users_to_show = 4;
+
+    users = [];
+    usersHTML = document.getElementsByTagName("li");
+    
+    for (var idx =0; idx < usersHTML.length; idx++) {
+        if (usersHTML[idx].id.includes("_name")) {
+            users.push(usersHTML[idx].innerHTML)
+        }
+    }
+    users.sort(orderUsers);
+    console.log(users.length, users);
+    textSize(24)
+
+    for (var idx = 0; idx < max_users_to_show; idx++) {
+        if (idx >= users.length) {
+            fill(255);
+            rect(row_x, row_y+(idx * row_h), row_w, row_h, row_h/4);
+            fill(0);
+            text("#"+(idx+1) + ":", row_x+row_h/4, row_y+(idx + 3/4)* row_h);
+        } else {
+            fill(255);
+            if (users[idx] == document.getElementById("username").value) {
+                fill(200);
+            }
+            rect(row_x, row_y+(idx * row_h), row_w, row_h, row_h/4);
+            fill(0);
+            [num_a, overall_accuracy] = getPastDigitInfo(digitToShow, users[idx]);
+            overall_accuracy = (overall_accuracy*100).toFixed(0) + "%"
+            text("#" + (idx+1) + ": " + users[idx] + " (" + overall_accuracy +  ")", row_x + row_h/4, row_y+((idx + 3/4)  * row_h));
+    
+        }
+    }
+}
+
 
 function HandleState0(frame) {
     TrainKNNIfNotDone();
@@ -593,9 +733,9 @@ function HandleState1(frame) {
 }
 
 function HandleState2(frame) {
-    if (mean_prediction_accuracy > 0.3) {
-        background([0, 255 * mean_prediction_accuracy, 0]);
-    }
+    // if (mean_prediction_accuracy > 0.3) {
+    //     background([0, 255 * mean_prediction_accuracy, 0]);
+    // }
 
     DrawHand(frame);
     DrawLowerRightPanel();
@@ -603,6 +743,7 @@ function HandleState2(frame) {
     if (trainingCompleted) {
         Test();
     }
+    
 }
 
 function getRandomInt(max) {

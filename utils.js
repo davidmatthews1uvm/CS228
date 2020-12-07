@@ -89,18 +89,20 @@ function UpdateHand(frame, acc, toDraw) {
     var hand = frame.hands[0];
     HandleHand(hand, frame.interactionBox, acc, toDraw);
 
-    if (HandIsTooFarToTheLeft()) {
-        DrawArrowLeft();
-    } else if (HandIsTooFarToTheRight()) {
-        DrawArrowRight();
-    } else if (HandIsTooFarToTheBottom()) {
-        DrawArrowUp();
-    } else if (HandIsTooFarToTheTop()) {
-        DrawArrowDown();
-    } else if (HandIsTooFarToTheScreen()) {
-        DrawArrowOut();
-    } else if (HandIsTooFarFromTheScreen()) {
-        DrawArrowIn();
+    if (toDraw){
+        if (HandIsTooFarToTheLeft()) {
+            DrawArrowLeft();
+        } else if (HandIsTooFarToTheRight()) {
+            DrawArrowRight();
+        } else if (HandIsTooFarToTheBottom()) {
+            DrawArrowUp();
+        } else if (HandIsTooFarToTheTop()) {
+            DrawArrowDown();
+        } else if (HandIsTooFarToTheScreen()) {
+            DrawArrowOut();
+        } else if (HandIsTooFarFromTheScreen()) {
+            DrawArrowIn();
+        }
     }
 }
 

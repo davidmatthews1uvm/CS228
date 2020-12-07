@@ -19,6 +19,7 @@ var mean_prediction_accuracy = 0;
 var mean_prediction_accuracies = [0,0,0,0,0,0,0,0,0,0];
 var num_attempts_per_digit     = [0,0,0,0,0,0,0,0,0,0];
 
+var consecutiveErrors = 0;
 
 /**
  * 0: no hands 
@@ -129,8 +130,25 @@ function HandleFrame(frame) {
         DrawGesture();
     }
     if (timeRemainFrac <= 0) {
-        background(0);
-        SwitchDigit();
+        if (mean_prediction_accuracy < 0.5) {
+            consecutiveErrors += 1;
+            if (consecutiveErrors >= 2) {
+                if (gameState == 2) {
+                    prevGameState = 2;
+                    gameState = 1;
+                } else if (gameState == 3) {
+                        prevGameState = 3;
+                        gameState = 1;
+                }
+            }
+            background(200, 0, 0);
+        } else {
+            consecutiveErrors = 0;
+            background(0, 200, 0);
+        }
+        if (gameState != 1) {
+            SwitchDigit();            
+        }
     }
     UpdateHand(frame, mean_prediction_accuracy, true);
 }

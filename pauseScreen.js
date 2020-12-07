@@ -97,8 +97,10 @@ function HandlePaused() {
                 gameState = prevGameState;
             } else if (pauseHoverState == 2) {
                 gameState = prevGameState;
+                consecutiveErrors = 0;
             } else if (pauseHoverState == 3) {
                 gameState = prevGameState == 3 ? 2 : 3;
+                consecutiveErrors = 0;
             }
             pauseHoverState = -1;
         }

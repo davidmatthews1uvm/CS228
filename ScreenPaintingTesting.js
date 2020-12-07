@@ -1,8 +1,13 @@
 var controllerOptions = {};
-var currentDigit = getRandomInt(10);
 
+// ML training
+
+//  graphics layout
 var y_grid = window.innerHeight / 64;
 var x_grid = window.innerWidth / 64;
+
+// track current digit
+var currentDigit = getRandomInt(10);
 
 /**
  * 0: no hands 
@@ -66,7 +71,7 @@ function HandleFrame(frame) {
     } else if (currNumHands == 2 && gameState != 1) {
         prevGameState = gameState;
         gameState = 1; // paused!
-    } else if (getTimeDiffSeconds(handsLastSeenTime, currTime) > noHandsTimeout) {
+    } else if (getTimeDiffSeconds(handsLastSeenTime, currTime) > noHandsTimeout && gameState != 0) {
         prevGameState = gameState;
         gameState = 0;
     }

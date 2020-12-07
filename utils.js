@@ -97,24 +97,3 @@ function DrawImageToHelpUserPutTheirHandOverTheDevice() {
     rotate_and_draw_image(handMissingImg, draw_offset_x, draw_offset_y, draw_width, draw_height, 0);
 }
 
-
-
-function DrawLeaderBoard() {
-    row_x = 48 * x_grid;
-    row_w = 15 * x_grid;
-    row_y = 32 * y_grid;
-    row_h = 4 * y_grid;
-    max_users_to_show = 7;
-
-    textSize(24);
-    stroke(0);
-    strokeWeight(1);
-    fill(0);
-    for (var idx = 0; idx < max_users_to_show; idx++) {
-        fill(255);
-        rect(row_x, row_y+(idx * row_h), row_w, row_h* 0.9, row_h/4);
-        fill(0);
-        text("#"+(idx+1) + ":", row_x+row_h/4, row_y+(idx + 3/4)* row_h);
-    }
-
-}

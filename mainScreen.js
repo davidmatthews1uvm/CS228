@@ -13,14 +13,15 @@ function DrawTop(revealDigit) {
     for (var idx = 0; idx < 10; idx++) {
 
         x_pos = square_spacing * (3 + idx);
-        // digit_accuracy = 0;
-        // if (num_attempts_per_digit[idx] == 0) {
-        fill([175, 175, 175]);
-        // } else {
-        //     digit_accuracy = mean_prediction_accuracies[idx];
-        //     background_intensity = (125) * (1-digit_accuracy);
-        //     fill([background_intensity, (mean_prediction_accuracies[idx])*(255 - background_intensity) + background_intensity, background_intensity]);
-        // }
+        digit_accuracy = 0;
+        background_intensity = 100;
+        if (num_attempts_per_digit[idx] == 0) {
+        fill(background_intensity);
+        } else {
+            digit_accuracy = mean_prediction_accuracies[idx];
+            // background_intensity = (125) * (1-digit_accuracy);
+            fill([background_intensity, (min(num_attempts_per_digit[idx], 2))*1/2*(mean_prediction_accuracies[idx])*(background_intensity) + background_intensity, background_intensity]);
+        }
         if(revealDigit && idx == currentDigit) {
             stroke(revealDigitColor)
             strokeWeight(10);
@@ -32,7 +33,12 @@ function DrawTop(revealDigit) {
         strokeWeight(1);
         fill(0);
         textSize(32);
-        text(idx, x_pos + 3*square_size/8 , y_pos + square_size * 5/8);
+        text(idx, x_pos + 3*square_size/8 , y_pos + square_size * 4/8);
+        textSize(20);
+        text((digit_accuracy*num_attempts_per_digit[idx]).toFixed(0) + "/" + num_attempts_per_digit[idx],
+            x_pos + 3*square_size/8 , y_pos + square_size * 7/8);
+
+
     }
 }
 

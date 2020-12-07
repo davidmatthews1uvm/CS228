@@ -54,13 +54,6 @@ function GotResults(err, result){
     frameIdx += 1;
 
     mean_prediction_accuracy = currDigitAccuracies.mean();
-
-    num_attempts_per_digit[currentDigit] += 1;
-    curr_accuracy = mean_prediction_accuracies[currentDigit];
-    curr_n = num_attempts_per_digit[currentDigit];
-    mean_prediction_accuracies[currentDigit] = ((curr_n-1)*curr_accuracy + (parseInt(result.label) == currNumHands))/curr_n
-
-    // addDigitAttempt((parseInt(result.label) == currentDigit))
 }
 
 function Train() {

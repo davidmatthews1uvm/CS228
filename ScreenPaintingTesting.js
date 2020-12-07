@@ -19,6 +19,7 @@ var mean_prediction_accuracy = 0;
 var mean_prediction_accuracies = [0,0,0,0,0,0,0,0,0,0];
 var num_attempts_per_digit     = [0,0,0,0,0,0,0,0,0,0];
 var consecutiveErrors = 0;
+var consecutiveSuccesses = 0;
 
 /**
  * 0: no hands 
@@ -52,6 +53,8 @@ var pauseHoverClickTime = 1;
 
 // Math Equation Things
 var mathEqToShow = "";
+var showedMathEnterWarning = false;
+var showedMathExitWarning = false;
 
 
 function SwitchDigit() {
@@ -133,21 +136,37 @@ function HandleFrame(frame) {
     if (timeRemainFrac <= revealGestureFrac) {
         DrawGesture();
     }
-    if (timeRemainFrac <= 0) {
-        if (mean_prediction_accuracy < 0.5) {
+    signedDigitCorrectly =  mean_prediction_accuracy >= 0.7
+    if (signedDigitCorrectly || (timeRemainFrac <= 0)) { // if accurate then user got the digit right.
+        num_attempts_per_digit[currentDigit] += 1;
+        curr_accuracy = mean_prediction_accuracies[currentDigit];
+        curr_n = num_attempts_per_digit[currentDigit];
+        mean_prediction_accuracies[currentDigit] = ((curr_n-1)*curr_accuracy + signedDigitCorrectly)/curr_n;
+    
+        // addDigitAttempt(signedDigitCorrectly)
+    }
+     if (signedDigitCorrectly || timeRemainFrac <= 0) {
+        if (!signedDigitCorrectly) {
+            consecutiveSuccesses = 0;
             consecutiveErrors += 1;
             if (consecutiveErrors >= 2) {
-                if (gameState == 2) {
-                    prevGameState = 2;
-                    gameState = 1;
-                } else if (gameState == 3) {
+                 if (gameState == 3 && !showedMathExitWarning) {
                         prevGameState = 3;
                         gameState = 1;
+                        showedMathExitWarning = true;
                 }
             }
             background(200, 0, 0);
         } else {
             consecutiveErrors = 0;
+            consecutiveSuccesses += 1;
+            if (consecutiveSuccesses >= 3) {
+                if (gameState == 2 && !showedMathEnterWarning) {
+                    prevGameState = 2;
+                    gameState = 1;
+                    showedMathEnterWarning = true;
+                }
+            }
             background(0, 200, 0);
         }
         if (gameState != 1) {

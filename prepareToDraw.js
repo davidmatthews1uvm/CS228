@@ -24,11 +24,13 @@
 // }
 var img;
 
+
 function setup() {
     createCanvas(window.innerWidth,window.innerHeight);
     handMissingImg = loadImage("https://i.imgur.com/yu2Jesh.jpeg");
     handImg = loadImage("https://upload.wikimedia.org/wikipedia/commons/thumb/7/7c/Silhouette_hand.svg/1000px-Silhouette_hand.svg.png");
     arrowImg = loadImage("https://upload.wikimedia.org/wikipedia/commons/thumb/9/9f/Arrow_west.svg/2000px-Arrow_west.svg.png");
+    repeatImg = loadImage("https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Repeat_font_awesome.svg/1024px-Repeat_font_awesome.svg.png");
     
     moveHandAwayImg = loadImage("https://i.imgur.com/WtouAcc.jpg");
     moveHandTowardImg = loadImage("https://i.imgur.com/59FGcFF.jpg");

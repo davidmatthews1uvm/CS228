@@ -57,7 +57,7 @@ function GotResults(err, result){
 }
 
 function Train() {
-    for (var i = 0; i < train6.shape[3] && i < 10; i++) {
+    for (var i = 0; i < train6.shape[3]; i++) {
         console.log(i);
         features = train0.pick(null, null, null, i).reshape(120);
         knnClassifier.addExample(features.tolist(), 0);

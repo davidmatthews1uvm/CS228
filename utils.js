@@ -112,7 +112,7 @@ function DrawLeaderBoard() {
     fill(0);
     for (var idx = 0; idx < max_users_to_show; idx++) {
         fill(255);
-        rect(row_x, row_y+(idx * row_h), row_w, row_h, row_h/4);
+        rect(row_x, row_y+(idx * row_h), row_w, row_h* 0.9, row_h/4);
         fill(0);
         text("#"+(idx+1) + ":", row_x+row_h/4, row_y+(idx + 3/4)* row_h);
     }

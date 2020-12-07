@@ -69,7 +69,7 @@ function SwitchDigit() {
     mean_prediction_accuracy = 0;
     
     digitBeginTime = new Date();
-    currentDigit = getRandomInt(3); //(10);
+    currentDigit = getRandomInt(10);
 
     // update math equation if needed;
     a = getRandomInt(9);

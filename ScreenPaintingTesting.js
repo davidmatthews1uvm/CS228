@@ -1,6 +1,9 @@
 var controllerOptions = {};
 
 // ML training
+const knnClassifier = ml5.KNNClassifier();
+
+var trainingCompleted = false;
 
 //  graphics layout
 var y_grid = window.innerHeight / 64;
@@ -94,9 +97,6 @@ function HandleFrame(frame) {
     DrawTimeRemaining(timeRemainFrac);
     DrawTimeRevealIcon(currRevealDigitFrac, revealDigitColor);
     DrawTimeRevealIcon(revealGestureFrac, 0);
-
-    UpdateHand(frame, timeRemainFrac, true);
-    
     DrawLeaderBoard();
 
     if (gameState == 3) {
@@ -112,6 +112,7 @@ function HandleFrame(frame) {
         background(0);
         SwitchDigit();
     }
+    UpdateHand(frame, timeRemainFrac, true);
 }
 
 Leap.loop(controllerOptions, function(frame){

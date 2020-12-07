@@ -12,7 +12,7 @@ function getTimeFracRemaining(prevTime, totalTime) {
     return 1 - Math.max(getTimeDiffSeconds(prevTime, new Date())/totalTime, 0);
 }
 
-
+// generic graphics
 function DrawLine(x1, y1, x2, y2, weight, color) {
     [x1, y1] = TransformedCoordinatesHand(x1, y1);
     [x2, y2] = TransformedCoordinatesHand(x2, y2);
@@ -22,11 +22,21 @@ function DrawLine(x1, y1, x2, y2, weight, color) {
     line(x1, y1, x2, y2);
 }
 
+function rotate_and_draw_image(img, img_x, img_y, img_width, img_height, img_angle) {
+    imageMode(CENTER);
+    translate(img_x + img_width / 2, img_y + img_width / 2);
+    rotate(PI / 180 * img_angle);
+    image(img, 0, 0, img_width, img_height);
+    rotate(-PI / 180 * img_angle);
+    translate(-(img_x + img_width / 2), -(img_y + img_width / 2));
+    imageMode(CORNER);
+}
 // Hand Drawing
 
 function TransformedCoordinatesHand(x, y) {
-    var scaledX  = x * window.innerWidth/2;
-    var scaledY  = (1 - y) * window.innerHeight/2;
+    var scaledX  = x * window.innerWidth * 31/64;
+    var scaledY  = (1 - y) * window.innerHeight * (64-11)/64;
+    scaledY += window.innerHeight*11/64;
     return [scaledX, scaledY];
 }
 
@@ -70,6 +80,9 @@ function HandleHand(hand, interaction_box, acc) {
 }
 
 function DrawHand(frame, acc) {
+    if (frame.hands.length == 0) {
+        return;
+    }
     var hand = frame.hands[0];
     HandleHand(hand, frame.interactionBox, acc);
 }

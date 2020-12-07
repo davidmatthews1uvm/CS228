@@ -4,13 +4,27 @@ var currentDigit = getRandomInt(10);
 var y_grid = window.innerHeight / 64;
 var x_grid = window.innerWidth / 64;
 
+/**
+ * 0: no hands 
+ * 1: normal mode
+ * 2: paused
+ * 3: math mode
+ */
+var gameState = 0;
+var noHandsTimeout = 10;
+var handsLastSeenTime;
+
 var beginTime;
 var timePerDigit = 5;
+var revealDigitFrac = 1.0;
+var revealDigitColor = [150, 0, 150];
 
-var prevNumHands = 0;
+var revealGestureFrac = 0.6;
+
 var currNumHands = 0;
 
 var oneFrameOfData = nj.zeros([5, 4, 6]);
+
 
 /**
  * x_grid: 3*4 - 12*4
@@ -63,6 +77,9 @@ function DrawTimeRemaining(remainTimeFrac) {
 }
 
 function DrawTimeGestureAppear(gestureTimeFrac, color) {
+    if (color == 0) {
+        return;
+    }
     triangle_height = 1 * y_grid;
     half_triangle_width = 0.25 * x_grid;
     x_pos = gestureTimeFrac * 64 * x_grid; // top point
@@ -75,15 +92,51 @@ function DrawTimeGestureAppear(gestureTimeFrac, color) {
             x_pos + half_triangle_width, y_pos + triangle_height);
 }
 
+function DrawDigit(color) {
+    x_pos = 55 * x_grid;
+    y_pos = 18 * y_grid;
+    stroke(0);
+    strokeWeight(1);
+    fill(color);
+    textSize(72);
+    text(currentDigit,
+        x_pos,
+        y_pos);
+
+}
+
+function DrawGesture() {
+    var aslImage;
+
+    switch (currentDigit) {
+        case 0:  aslImage = aslZeroImg; break;
+        case 1:  aslImage = aslOneImg; break;
+        case 2:  aslImage = aslTwoImg; break;
+        case 3:  aslImage = aslThreeImg; break;
+        case 4:  aslImage = aslFourImg; break;
+        case 5:  aslImage = aslFiveImg; break;
+        case 6:  aslImage = aslSixImg; break;
+        case 7:  aslImage = aslSevenImg; break;
+        case 8:  aslImage = aslEightImg; break;
+        case 9:  aslImage = aslNineImg; break;
+    }
+        img_x = 33 *  x_grid;
+        img_y = 32 * y_grid;
+        draw_height = img_y;
+        draw_width = draw_height * (aslImage.width/aslImage.height);
+        rotate_and_draw_image(aslImage, img_x, img_y, draw_width, draw_height , 0)
+    }
+
 
 function DrawSectionLines() {
     x_pos = 32 * x_grid;
     y_pos_top = 9 * y_grid;
     y_pos_bottom = 64 * y_grid;
-    DrawLine(0, y_pos_top, x_grid * 64, y_pos_top, 3, 0);
-    DrawLine(x_pos, y_pos_top,
-            x_pos, y_pos_bottom,
-            3, 0);
+    strokeWeight(3);
+    fill(0);
+    line(0, y_pos_top, x_grid * 64, y_pos_top);
+    line(x_pos, y_pos_top,
+            x_pos, y_pos_bottom);
 }
 
 function SwitchDigit() {
@@ -91,29 +144,50 @@ function SwitchDigit() {
     currentDigit = getRandomInt(10);
 }
 
+function DrawState0() {
+
+}
+
 
 function HandleFrame(frame) {
     currNumHands = frame.hands.length;
-    if (currNumHands == 1 && prevNumHands == 0) {
-       SwitchDigit();
-    }
-    if (currNumHands == 1) {
-        var hand = frame.hands[0];
-        timeRemainFrac = getTimeFracRemaining(beginTime, timePerDigit);
-
-        DrawTop();
-        DrawSectionLines();
-        DrawTimeRemaining(timeRemainFrac);
-        DrawTimeGestureAppear(0.7, [0,0,0]);
-        DrawTimeGestureAppear(0.4, [170, 0, 170]);
-
-        DrawHand(frame, timeRemainFrac);
-
-        if (timeRemainFrac <= 0) {
+    currTime = new Date();
+    
+    // update state if needed.
+    if (currNumHands != 0) {
+        handsLastSeenTime = currTime;
+        if (gameState == 0) {
+            gameState = 1;
             SwitchDigit();
         }
+    } else if (getTimeDiffSeconds(handsLastSeenTime, currTime) > noHandsTimeout) {
+        gameState = 0;
     }
-    prevNumHands = currNumHands;
+
+    if (gameState == 0) {
+        DrawState0();
+        return;
+    }
+
+
+    timeRemainFrac = getTimeFracRemaining(beginTime, timePerDigit);
+
+    DrawTop();
+    DrawSectionLines();
+    DrawTimeRemaining(timeRemainFrac);
+    DrawTimeGestureAppear(revealDigitFrac, revealDigitFrac < 1.0 ? revealDigitColor : 0);
+    DrawTimeGestureAppear(revealGestureFrac, 0);
+
+    DrawHand(frame, timeRemainFrac);
+    if (timeRemainFrac <= revealDigitFrac) {
+        DrawDigit(revealDigitFrac < 1.0 ? revealDigitColor : 0);
+    }
+    if (timeRemainFrac <= revealGestureFrac) {
+        DrawGesture();
+    }
+    if (timeRemainFrac <= 0) {
+        SwitchDigit();
+    }
 }
 
 Leap.loop(controllerOptions, function(frame){

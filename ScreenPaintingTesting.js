@@ -11,6 +11,14 @@ var x_grid = window.innerWidth / 64;
 
 // track current digit
 var currentDigit = getRandomInt(10);
+var observedDigit;
+var n = 0;
+var m = 0;
+var mean_prediction_accuracy = 0;
+
+var mean_prediction_accuracies = [0,0,0,0,0,0,0,0,0,0];
+var num_attempts_per_digit     = [0,0,0,0,0,0,0,0,0,0];
+
 
 /**
  * 0: no hands 
@@ -81,12 +89,19 @@ function HandleFrame(frame) {
 
     if (gameState == 0) {
         DrawImageToHelpUserPutTheirHandOverTheDevice();
+        TrainKNNIfNotDone();
         return;
     } else if (gameState == 1) {
         UpdateHand(frame, 0, false);
         HandlePaused();
         return;
     }
+    // in an active game mode. Launch call to determine current digit type.
+    if (trainingCompleted) {
+        Test();
+    }
+    console.log(observedDigit);
+
     currRevealDigitFrac = gameState == 2 ? 1.0 : revealDigitFrac;
     timeRemainFrac = getTimeFracRemaining(digitBeginTime, timePerDigit);
 

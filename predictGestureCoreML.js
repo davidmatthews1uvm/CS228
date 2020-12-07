@@ -49,20 +49,17 @@ function CenterData() {
 }
 
 function GotResults(err, result){
+    observedDigit = parseInt(result.label);
     n += 1;
-    mean_prediction_accuracy = ((n-1)*mean_prediction_accuracy + (parseInt(result.label) == digitToShow))/n;
-    m += (parseInt(result.label) == digitToShow);
+    mean_prediction_accuracy = ((n-1)*mean_prediction_accuracy + (parseInt(result.label) == currentDigit))/n;
+    m += (parseInt(result.label) == currentDigit);
 
-    num_attempts_per_digit[digitToShow] += 1;
-    curr_accuracy = mean_prediction_accuracies[digitToShow];
-    curr_n = num_attempts_per_digit[digitToShow];
-    mean_prediction_accuracies[digitToShow] = ((curr_n-1)*curr_accuracy + (parseInt(result.label) == digitToShow))/curr_n
+    num_attempts_per_digit[currentDigit] += 1;
+    curr_accuracy = mean_prediction_accuracies[currentDigit];
+    curr_n = num_attempts_per_digit[currentDigit];
+    mean_prediction_accuracies[currentDigit] = ((curr_n-1)*curr_accuracy + (parseInt(result.label) == currNumHands))/curr_n
 
-    // console.log("current", digitToShow, result.label, n, mean_prediction_accuracy, "lifetime: ", curr_n, mean_prediction_accuracies[digitToShow] );
-    digitSeen = parseInt(result.label)
-
-    // text(result.label, window.innerWidth * 3/4, window.innerHeight * 3/4 );
-    addDigitAttempt((parseInt(result.label) == digitToShow))
+    // addDigitAttempt((parseInt(result.label) == currentDigit))
 }
 
 function Train() {

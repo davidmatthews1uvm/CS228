@@ -76,13 +76,13 @@ function DrawTimeRemaining(remainTimeFrac) {
     rect(0*x_grid, (rect_y)*y_grid, 64*x_grid*remainTimeFrac, rect_height*y_grid);
 }
 
-function DrawTimeGestureAppear(gestureTimeFrac, color) {
-    if (color == 0) {
+function DrawTimeRevealIcon(iconRevealTime, color) {
+    if (iconRevealTime == 1) {
         return;
     }
     triangle_height = 1 * y_grid;
     half_triangle_width = 0.25 * x_grid;
-    x_pos = gestureTimeFrac * 64 * x_grid; // top point
+    x_pos = iconRevealTime * 64 * x_grid; // top point
     y_pos = 9 * y_grid;
     
     fill(color);
@@ -175,8 +175,8 @@ function HandleFrame(frame) {
     DrawTop();
     DrawSectionLines();
     DrawTimeRemaining(timeRemainFrac);
-    DrawTimeGestureAppear(revealDigitFrac, revealDigitFrac < 1.0 ? revealDigitColor : 0);
-    DrawTimeGestureAppear(revealGestureFrac, 0);
+    DrawTimeRevealIcon(revealDigitFrac, revealDigitColor);
+    DrawTimeRevealIcon(revealGestureFrac, 0);
 
     DrawHand(frame, timeRemainFrac);
     if (timeRemainFrac <= revealDigitFrac) {

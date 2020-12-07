@@ -314,17 +314,16 @@ function HandleFrame(frame) {
         UpdateHand(frame, 0, false);
         HandlePaused();
         return;
-    } 
-
-
+    }
+    currRevealDigitFrac = gameState == 2 ? 1.0 : revealDigitFrac;
     timeRemainFrac = getTimeFracRemaining(digitBeginTime, timePerDigit);
 
-    revealDigit = timeRemainFrac <= revealDigitFrac;
+    revealDigit = timeRemainFrac <= currRevealDigitFrac;
     
     DrawTop(revealDigit);
     DrawSectionLines();
     DrawTimeRemaining(timeRemainFrac);
-    DrawTimeRevealIcon(revealDigitFrac, revealDigitColor);
+    DrawTimeRevealIcon(currRevealDigitFrac, revealDigitColor);
     DrawTimeRevealIcon(revealGestureFrac, 0);
 
     UpdateHand(frame, timeRemainFrac, true);
@@ -332,10 +331,10 @@ function HandleFrame(frame) {
     DrawLeaderBoard();
 
     if (gameState == 3) {
-        DrawEquation(revealDigitFrac < 1.0 ? revealDigitColor : 0, revealDigit);
+        DrawEquation(currRevealDigitFrac < 1.0 ? revealDigitColor : 0, revealDigit);
     }
     if (revealDigit) {
-        DrawDigit(revealDigitFrac < 1.0 ? revealDigitColor : 0);
+        DrawDigit(currRevealDigitFrac < 1.0 ? revealDigitColor : 0);
     }
     if (timeRemainFrac <= revealGestureFrac) {
         DrawGesture();

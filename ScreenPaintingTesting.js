@@ -10,11 +10,12 @@ var x_grid = window.innerWidth / 64;
  * 2: normal play
  * 3: math mode
  */
+var prevGameState = 0;
 var gameState = 0;
 var noHandsTimeout = 10;
 var handsLastSeenTime;
 
-var beginTime;
+var digitBeginTime;
 var timePerDigit = 5;
 var revealDigitFrac = 0.8;
 var revealDigitColor = [150, 0, 150];
@@ -162,7 +163,7 @@ function DrawSectionLines() {
 }
 
 function SwitchDigit() {
-    beginTime = new Date();
+    digitBeginTime = new Date();
     currentDigit = getRandomInt(10);
 
     // update math equation if needed;
@@ -229,7 +230,13 @@ function HandlePaused() {
     textSize(96);
     x_pos = 48/2 * x_grid;
     y_pos = 48 * y_grid;
-    text('a + b = ?',
+    txtStr = "";
+    if (prevGameState == 3) {
+        txtStr += "   <==   ";
+    }  else {
+        txtStr += 'a + b = ?';
+    }
+    text(txtStr,
         x_pos,
         y_pos);
 
@@ -265,7 +272,15 @@ function HandlePaused() {
         y_height = x_grid*2*(1-remainTime);
         rect(x_pos, y_pos+ (x_grid*2 - y_height), x_grid * 0.5, y_height);
         if (remainTime <= 0) {
-            gameState = pauseHoverState;
+            if (pauseHoverState == 1) { // repeat current digit
+                digitBeginTime = new Date();
+                gameState = prevGameState;
+            } else if (pauseHoverState == 2) {
+                gameState = prevGameState;
+            } else if (pauseHoverState == 3) {
+                gameState = prevGameState == 3 ? 2 : 3;
+            }
+            pauseHoverState = -1;
         }
 
     }
@@ -280,12 +295,15 @@ function HandleFrame(frame) {
     if (currNumHands == 1) {
         handsLastSeenTime = currTime;
         if (gameState == 0) {
+            prevGameState = gameState;
             gameState = 2;
             SwitchDigit();
         }
-    } else if (currNumHands == 2) {
+    } else if (currNumHands == 2 && gameState != 1) {
+        prevGameState = gameState;
         gameState = 1; // paused!
     } else if (getTimeDiffSeconds(handsLastSeenTime, currTime) > noHandsTimeout) {
+        prevGameState = gameState;
         gameState = 0;
     }
 
@@ -299,7 +317,7 @@ function HandleFrame(frame) {
     } 
 
 
-    timeRemainFrac = getTimeFracRemaining(beginTime, timePerDigit);
+    timeRemainFrac = getTimeFracRemaining(digitBeginTime, timePerDigit);
 
     revealDigit = timeRemainFrac <= revealDigitFrac;
     
@@ -323,6 +341,7 @@ function HandleFrame(frame) {
         DrawGesture();
     }
     if (timeRemainFrac <= 0) {
+        background(0);
         SwitchDigit();
     }
 }

@@ -18,7 +18,6 @@ var mean_prediction_accuracy = 0;
 
 var mean_prediction_accuracies = [0,0,0,0,0,0,0,0,0,0];
 var num_attempts_per_digit     = [0,0,0,0,0,0,0,0,0,0];
-
 var consecutiveErrors = 0;
 
 /**
@@ -33,6 +32,9 @@ var noHandsTimeout = 10;
 var handsLastSeenTime;
 
 var digitBeginTime;
+var frameIdx = 0;
+var frameIdxMaxSize = 30;
+var currDigitAccuracies = nj.zeros([frameIdxMaxSize]);
 var timePerDigit = 5;
 var revealDigitFrac = 0.8;
 var revealDigitColor = [150, 0, 150];
@@ -53,6 +55,8 @@ var mathEqToShow = "";
 
 
 function SwitchDigit() {
+    frameIdx = 0;
+    currDigitAccuracies = nj.zeros([frameIdxMaxSize]);
     n = 0;
     m = 0;
     mean_prediction_accuracy = 0;
@@ -150,7 +154,7 @@ function HandleFrame(frame) {
             SwitchDigit();            
         }
     }
-    UpdateHand(frame, mean_prediction_accuracy, true);
+    UpdateHand(frame, currDigitAccuracies.mean(), true);
 }
 
 Leap.loop(controllerOptions, function(frame){

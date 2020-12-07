@@ -50,9 +50,10 @@ function CenterData() {
 
 function GotResults(err, result){
     observedDigit = parseInt(result.label);
-    n += 1;
-    mean_prediction_accuracy = ((n-1)*mean_prediction_accuracy + (parseInt(result.label) == currentDigit))/n;
-    m += (parseInt(result.label) == currentDigit);
+    currDigitAccuracies.set(frameIdx%frameIdxMaxSize, observedDigit == currentDigit);
+    frameIdx += 1;
+
+    mean_prediction_accuracy = currDigitAccuracies.mean();
 
     num_attempts_per_digit[currentDigit] += 1;
     curr_accuracy = mean_prediction_accuracies[currentDigit];

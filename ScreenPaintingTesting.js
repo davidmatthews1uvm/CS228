@@ -37,7 +37,11 @@ var frameIdx = 0;
 var frameIdxMaxSize = 30;
 var currDigitAccuracies = nj.zeros([frameIdxMaxSize]);
 var timePerDigit = 5;
+var timePerDigitMin = 3;
+var timePerDigitRange = 4;
 var revealDigitFrac = 0.8;
+var revealDigitFracMin = 0.4;
+var revealDigitFracRange = 0.6;
 var revealDigitColor = [150, 0, 150];
 
 var revealGestureFrac = 0.6;
@@ -65,7 +69,7 @@ function SwitchDigit() {
     mean_prediction_accuracy = 0;
     
     digitBeginTime = new Date();
-    currentDigit = getRandomInt(10);
+    currentDigit = getRandomInt(3); //(10);
 
     // update math equation if needed;
     a = getRandomInt(9);
@@ -77,6 +81,27 @@ function SwitchDigit() {
         mathEqToShow += " + "+b;
     }
     mathEqToShow += " = ";
+
+    var ttlAttempts = num_attempts_per_digit.reduce(function(a, b){
+        return a + b;
+    }, 0);
+    
+    var sumPredAcc = mean_prediction_accuracies.reduce(function(a, b){
+        return a + b;
+    }, 0);
+    overallAcc = sumPredAcc / (ttlAttempts);
+    if (ttlAttempts < 10) {
+        timePerDigit = timePerDigitMin + timePerDigitRange * 0.5;
+    } else {
+        timePerDigit = timePerDigitMin + timePerDigitRange * (1-overallAcc); // longer if doing worse, shorter if doing well.
+    }
+    if (num_attempts_per_digit[currentDigit] < 3) {
+        revealDigitFrac = 1.0;
+        revealGestureFrac = 1.0;
+    }  else {
+        revealDigitFrac = revealDigitFracMin + (1-mean_prediction_accuracies[currentDigit])*revealDigitFracRange;
+        revealGestureFrac =  revealDigitFrac - 0.2;
+    }
 }
 
 function HandleFrame(frame) {

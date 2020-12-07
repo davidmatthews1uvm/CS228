@@ -26,6 +26,8 @@ var digitsToShow = 1;
 var maxDigitsToShow = 10;
 var imageUpTime = 3;
 var signDigitTime = 5;
+var signDigitTimeMin = 3;
+var signDigitTimeMax = 7;
 var signDigitTimeFrac = 1;
 
 var timeSinceLastDigitChange = new Date();

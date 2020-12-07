@@ -150,15 +150,28 @@ function DrawLeaderBoard() {
     row_h = 4 * y_grid;
     max_users_to_show = 7;
 
+    users = getUsersSorted();
     textSize(24);
     stroke(0);
     strokeWeight(1);
     fill(0);
     for (var idx = 0; idx < max_users_to_show; idx++) {
-        fill(255);
-        rect(row_x, row_y+(idx * row_h), row_w, row_h* 0.9, row_h/4);
-        fill(0);
-        text("#"+(idx+1) + ":", row_x+row_h/4, row_y+(idx + 3/4)* row_h);
+        if (idx >= users.length) {
+            fill(255);
+            rect(row_x, row_y+(idx * row_h), row_w, row_h, row_h/4);
+            fill(0);
+            text("#"+(idx+1) + ":", row_x+row_h/4, row_y+(idx + 3/4)* row_h);
+        } else {
+            fill(255);
+            if (users[idx] == document.getElementById("username").value) {
+                fill(200);
+            }
+            rect(row_x, row_y+(idx * row_h), row_w, row_h, row_h/4);
+            fill(0);
+            [num_a, overall_accuracy] = getPastDigitInfo(currentDigit, users[idx]);
+            overall_accuracy = (overall_accuracy*100).toFixed(0) + "%"
+            text("#" + (idx+1) + ": " + users[idx] + " (" + overall_accuracy +  ")", row_x + row_h/4, row_y+((idx + 3/4)  * row_h));
+    
+        }   
     }
-
 }

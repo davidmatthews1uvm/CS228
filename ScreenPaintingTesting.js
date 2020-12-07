@@ -168,7 +168,7 @@ function HandleFrame(frame) {
         curr_n = num_attempts_per_digit[currentDigit];
         mean_prediction_accuracies[currentDigit] = ((curr_n-1)*curr_accuracy + signedDigitCorrectly)/curr_n;
     
-        // addDigitAttempt(signedDigitCorrectly)
+        addDigitAttempt(signedDigitCorrectly)
     }
      if (signedDigitCorrectly || timeRemainFrac <= 0) {
         if (!signedDigitCorrectly) {

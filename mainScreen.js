@@ -78,6 +78,18 @@ function DrawDigit(color) {
 
 }
 
+function DrawAccuracy() {
+    x_pos = 20 * x_grid;
+    y_pos = 18 * y_grid;
+    stroke(0);
+    strokeWeight(1);
+    fill(0);
+    textSize(72);
+    text((mean_prediction_accuracy*100).toFixed(0) + "%",
+        x_pos,
+        y_pos);
+}
+
 function DrawEquation(color, revealDigit) {
     x_pos = 36 * x_grid;
     y_pos = 18 * y_grid;

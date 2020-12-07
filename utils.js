@@ -60,8 +60,11 @@ function HandleBone(bone, finger_idx, interaction_box, acc, toDraw) {
     oneFrameOfData.set(finger_idx, bone.type, 5, z2);
 
     if (toDraw) {
-        color = [(2-bone.type/2)*125*(1 - acc),
-                (2-bone.type/2)*125*(acc), 0];
+        // color = [(2-bone.type/2)*125*(1 - acc),
+        //         (2-bone.type/2)*125*(acc), 0];
+        color = [50*(2 - bone.type/2),
+                (50 + 50*acc)*(2 - bone.type/2),
+                50*(2 - bone.type/2)];
 
         DrawLine(x1, y1, x2, y2, 10*(4 - bone.type),  color);
     }

@@ -52,6 +52,10 @@ var mathEqToShow = "";
 
 
 function SwitchDigit() {
+    n = 0;
+    m = 0;
+    mean_prediction_accuracy = 0;
+    
     digitBeginTime = new Date();
     currentDigit = getRandomInt(10);
 
@@ -113,6 +117,7 @@ function HandleFrame(frame) {
     DrawTimeRevealIcon(currRevealDigitFrac, revealDigitColor);
     DrawTimeRevealIcon(revealGestureFrac, 0);
     DrawLeaderBoard();
+    DrawAccuracy();
 
     if (gameState == 3) {
         DrawEquation(currRevealDigitFrac < 1.0 ? revealDigitColor : 0, revealDigit);
@@ -127,7 +132,7 @@ function HandleFrame(frame) {
         background(0);
         SwitchDigit();
     }
-    UpdateHand(frame, timeRemainFrac, true);
+    UpdateHand(frame, mean_prediction_accuracy, true);
 }
 
 Leap.loop(controllerOptions, function(frame){
